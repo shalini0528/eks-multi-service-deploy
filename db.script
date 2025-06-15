@@ -1,0 +1,47 @@
+create database lugxgamingdb;
+use lugxgamingdb;
+
+CREATE TABLE games (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  category VARCHAR(255) NOT NULL,
+  release_date DATE,
+  price DECIMAL(10, 2) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  total_price DECIMAL(10, 2) NOT NULL,
+  status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE cart_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  game_id INT NOT NULL,
+  quantity INT NOT NULL,
+  unit_price DECIMAL(10, 2) NOT NULL,
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
+);
+
+INSERT INTO games (name, category, release_date, price) VALUES
+('Elden Ring', 'RPG', '2022-02-25', 59.99),
+('FIFA 24', 'Sports', '2024-09-29', 49.99),
+('Minecraft', 'Sandbox', '2011-11-18', 26.95),
+('Call of Duty: Modern Warfare III', 'Shooter', '2023-11-10', 69.99),
+('The Legend of Zelda: Tears of the Kingdom', 'Adventure', '2023-05-12', 69.99);
+
+INSERT INTO orders (user_id, total_price, status) VALUES
+(101, 129.98, 'paid'),
+(102, 69.99, 'pending'),
+(103, 49.99, 'cancelled');
+
+INSERT INTO cart_items (order_id, game_id, quantity, unit_price) VALUES
+(1, 1, 1, 59.99),
+(1, 4, 1, 69.99),
+(2, 5, 1, 69.99),
+(3, 2, 1, 49.99);
