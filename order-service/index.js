@@ -11,7 +11,7 @@ const pool = mysql.createPool({
   host:  'localhost',
   user:  'root',
   password: 'root',
-  database: 'lugxordersdb'
+  database: 'lugxdb'
 });
 
 
@@ -19,7 +19,7 @@ const pool = mysql.createPool({
 app.post('/orders', async (req, res) => {
     const {  user_id, total_price, status, created_at } = req.body;
     await pool.execute(
-        'INSERT INTO orders (user_id, total_price, status, created_at) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO orders (user_id, total_price, status, created_at) VALUES (?, ?, ?, ?)',
         [user_id, total_price, status, created_at]
     );
     res.status(200).json({ message: 'Order created successfully' });
