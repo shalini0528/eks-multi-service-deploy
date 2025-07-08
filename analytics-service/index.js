@@ -4,17 +4,17 @@ import { randomUUID } from 'crypto';
 import cors from 'cors';
 
 const app = express();
-app.use(cors()); 
+app.use(cors());
 app.use(express.json());
 
 const PORT = 4000;
 
 // ClickHouse client
 const clickhouse = createClient({
-  host: "https://z5rbcna629.ap-southeast-1.aws.clickhouse.cloud:8443",
-  username: "default",
-  password: "j4JMDKnteD.Hu",
-  database: "lugxanalytics",
+  url:  process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
+  username: process.env.CH_USERNAME || "default",
+  password: process.env.CH_PASSWORD || "_rEhDqvOY7qxG",
+  database: process.env.CH_DB || "lugxanalytics",
 });
 
 // POST /track - Capture analytics
@@ -28,7 +28,7 @@ app.post('/track', async (req, res) => {
         id: randomUUID(),
         event_type,
         page_url,
-        timestamp: new Date(),
+        timestamp: new Date()
       }],
       format: 'JSONEachRow'
     });
