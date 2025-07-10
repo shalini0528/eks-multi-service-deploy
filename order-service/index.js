@@ -14,6 +14,10 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || 'lugxdbOrder'
 });
 
+//Check Order service health
+app.get('/', (req, res) => {
+  res.send('Order Service is healthy');
+});
 
 // Test DB connection
 pool.getConnection()
