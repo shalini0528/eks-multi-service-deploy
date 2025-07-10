@@ -8,21 +8,21 @@ spec:
   rules:
   - http:
       paths:
-      - path: /game(/|$)(.*)
+      - path: /game-service(/|$)(.*)
         pathType: Prefix
         backend:
           service:
             name: game-service
             port:
               number: 80
-      - path: /order(/|$)(.*)
+      - path: /order-service(/|$)(.*)
         pathType: Prefix
         backend:
           service:
             name: order-service
             port:
               number: 80
-      - path: /analytics(/|$)(.*)
+      - path: /analytics-service(/|$)(.*)
         pathType: Prefix
         backend:
           service:
