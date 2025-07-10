@@ -14,6 +14,11 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || 'lugxdbGame'
 });
 
+//check service health
+app.get('/', (req, res) => {
+  res.send('Game Service is healthy');
+});
+
 //get all games
 app.get('/games', async (req,res)=>{
    const [rows] = await pool.query('SELECT * FROM games');
