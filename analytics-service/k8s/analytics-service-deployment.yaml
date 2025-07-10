@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: analytics-service
+  namespace: analytics
+  labels:
+    app: analytics-service
 spec:
   replicas: 3
   selector:
@@ -20,18 +23,31 @@ spec:
         - containerPort: 4000
         env:
         - name: CH_URL
-          value: "https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443"   
+          value: "https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443"
         - name: CH_USERNAME
           value: "default"
         - name: CH_PASSWORD
           value: "_rEhDqvOY7qxG"
         - name: CH_DB
           value: "lugxanalytics"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: analytics-service
+  namespace: analytics
 spec:
   selector:
     app: analytics-service
