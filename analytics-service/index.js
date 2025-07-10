@@ -9,6 +9,11 @@ app.use(express.json());
 
 const PORT = 4000;
 
+// Check Analytics service health
+app.get('/', (req, res) => {
+  res.send('Analytics Service is healthy');
+});
+
 // ClickHouse client
 const clickhouse = createClient({
   url:  process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
