@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: game-service
+  name: order-service
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: game-service
+      app: order-service
   template:
     metadata:
       labels:
-        app: game-service
+        app: order-service
     spec:
       containers:
-      - name: game-service
-        image: shalini1772/game-service:0.1
+      - name: order-service
+        image: shalini1772/order-service:0.1
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 3000
+        - containerPort: 5000
         env:
         - name: DB_HOST
           value: "mysql"
@@ -26,17 +26,17 @@ spec:
         - name: DB_PASSWORD
           value: "root"
         - name: DB_NAME
-          value: "lugxdbGame"
+          value: "lugxdbOrder"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: game-service
+  name: order-service
 spec:
   selector:
-    app: game-service
+    app: order-service
   ports:
     - port: 80
-      targetPort: 3000
-      nodePort: 31025
+      targetPort: 5000
+      nodePort: 31026
   type: NodePort

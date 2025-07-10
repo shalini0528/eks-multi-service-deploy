@@ -1,29 +1,29 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql-game-service
+  name: mysql-order-service
 spec:
   selector:
-    app: mysql-game-service
+    app: mysql-order-service
   ports:
     - port: 3306
       targetPort: 3306
-      nodePort: 30325
+      nodePort: 30326
   type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-game-service
+  name: mysql-order-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysql-game-service
+      app: mysql-order-service
   template:
     metadata:
       labels:
-        app: mysql-game-service
+        app: mysql-order-service
     spec:
       containers:
       - name: mysql
@@ -32,7 +32,7 @@ spec:
         - name: MYSQL_ROOT_PASSWORD
           value: "root"
         - name: MYSQL_DATABASE
-          value: "lugxdbGame"
+          value: "lugxdbOrder"
         ports:
         - containerPort: 3306
         volumeMounts:
@@ -46,4 +46,4 @@ spec:
         emptyDir: {}
       - name: initdb
         configMap:
-          name: mysql-game-initdb-config
+          name: mysql-initdb-config
