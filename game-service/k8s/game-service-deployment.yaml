@@ -20,7 +20,7 @@ spec:
         - containerPort: 3000
         env:
         - name: DB_HOST
-          value: "mysql"   
+          value: "mysql"
         - name: DB_USER
           value: "root"
         - name: DB_PASSWORD
@@ -38,4 +38,5 @@ spec:
   ports:
     - port: 80
       targetPort: 3000
-  type: LoadBalancer
+      nodePort: 31025  # Optional: explicitly set NodePort (range: 30000–32767)
+  type: NodePort
