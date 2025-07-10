@@ -20,7 +20,7 @@ spec:
         - containerPort: 5000
         env:
         - name: DB_HOST
-          value: "mysql"
+          value: "mysql-order-service"
         - name: DB_USER
           value: "root"
         - name: DB_PASSWORD

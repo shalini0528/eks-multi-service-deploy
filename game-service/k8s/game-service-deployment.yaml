@@ -20,7 +20,7 @@ spec:
         - containerPort: 3000
         env:
         - name: DB_HOST
-          value: "mysql"
+          value: "mysql-game-service"
         - name: DB_USER
           value: "root"
         - name: DB_PASSWORD
