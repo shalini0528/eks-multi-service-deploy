@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: game-service
-        image: shalini1772/game-service:0.2
+        image: shalini1772/game-service:0.1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
