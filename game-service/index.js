@@ -14,7 +14,7 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || 'lugxdbGame'
 });
 
-//check service health
+//Check Game service health
 app.get('/', (req, res) => {
   res.send('Game Service is healthy');
 });
