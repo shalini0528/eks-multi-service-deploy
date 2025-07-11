@@ -27,7 +27,7 @@ spec:
         - name: CH_USERNAME
           value: "default"
         - name: CH_PASSWORD
-          value: "_rEhDqvOY7qxG"
+          value: "2NJh7XE.eUV2U"
         - name: CH_DB
           value: "lugxanalytics"
         readinessProbe:
