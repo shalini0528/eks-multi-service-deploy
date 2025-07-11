@@ -6,7 +6,7 @@ import cors from 'cors';
 const app = express();
 
 app.use(cors({
-  origin: '*', 
+  origin: 'http://13.51.165.23',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
 }));
