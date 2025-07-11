@@ -4,22 +4,30 @@ import { randomUUID } from 'crypto';
 import cors from 'cors';
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: '*', 
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+}));
+
 app.use(express.json());
 
 const PORT = 4000;
 
-// Check Analytics service health
-app.get('/', (req, res) => {
-  res.send('Analytics Service is healthy');
-});
+app.options('/track', cors());
 
 // ClickHouse client
 const clickhouse = createClient({
-  url:  process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
+  url: process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
   username: process.env.CH_USERNAME || "default",
   password: process.env.CH_PASSWORD || "2NJh7XE.eUV2U",
   database: process.env.CH_DB || "lugxanalytics",
+});
+
+// Check Analytics service health
+app.get('/', (req, res) => {
+  res.send('Analytics Service is healthy');
 });
 
 // POST /track - Capture analytics
