@@ -42,6 +42,12 @@ jobs:
           docker tag game-service shalini1772/game-service:0.1
           docker push shalini1772/game-service:0.1
 
+      - name: Set up AWS credentials
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          aws configure set region "${{ secrets.AWS_REGION }}"
+
       - name: Configure Kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
@@ -71,6 +77,12 @@ jobs:
           docker tag analytics-service shalini1772/analytics-service:0.1
           docker push shalini1772/analytics-service:0.1
 
+      - name: Set up AWS credentials
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          aws configure set region "${{ secrets.AWS_REGION }}"
+
       - name: Configure Kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
@@ -98,6 +110,12 @@ jobs:
           docker build -t order-service ./order-service
           docker tag order-service shalini1772/order-service:0.1
           docker push shalini1772/order-service:0.1
+
+      - name: Set up AWS credentials
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          aws configure set region "${{ secrets.AWS_REGION }}"
 
       - name: Configure Kubeconfig
         run: |
