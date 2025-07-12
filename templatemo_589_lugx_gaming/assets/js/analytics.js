@@ -1,3 +1,4 @@
+<script>
 (function () {
   // Polyfill UUID generator for all browsers
   function generateUUID() {
@@ -12,6 +13,8 @@
   const sessionId = sessionStorage.getItem('session_id') || generateUUID();
   sessionStorage.setItem('session_id', sessionId);
 
+  const pageUrl = window.location.pathname;
+
   const sendEvent = (eventType, data = {}) => {
     fetch('http://ae2098f8d4e284d408d7cab2e17cf26e-356597941.us-east-1.elb.amazonaws.com/track', {
       method: 'POST',
@@ -20,7 +23,7 @@
         event_time: new Date().toISOString(),
         session_id: sessionId,
         event_type: eventType,
-        page_url: window.location.pathname,
+        page_url: pageUrl,
         user_agent: navigator.userAgent,
         referrer: document.referrer || null,
         ip_address: null,
@@ -59,3 +62,4 @@
     });
   });
 })();
+</script>
