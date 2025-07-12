@@ -1,5 +1,5 @@
 (function () {
-  // UUID generator
+  // UUID generator for event/session IDs
   function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = Math.random() * 16 | 0;
@@ -14,11 +14,13 @@
   const pageUrl = window.location.pathname;
 
   const sendEvent = (eventType, data = {}) => {
+    const timestamp = new Date().toISOString();
+
     const payload = {
       id: generateUUID(),
       event_type: eventType,
       page_url: pageUrl,
-      timestamp: new Date().toISOString(),
+      timestamp: timestamp,
       session_id: sessionId,
       click_target: null,
       scroll_depth: null,
@@ -35,10 +37,13 @@
     }).catch(err => console.error('Analytics send failed', err));
   };
 
-  // Page view
-  sendEvent('page_view');
+  // Guard: prevent double firing page_view
+  if (!sessionStorage.getItem('page_view_sent')) {
+    sendEvent('page_view');
+    sessionStorage.setItem('page_view_sent', 'true');
+  }
 
-  // Clicks
+  // Track clicks
   document.addEventListener('click', (e) => {
     const tag = e.target.tagName;
     const id = e.target.id ? `#${e.target.id}` : '';
@@ -47,7 +52,7 @@
     sendEvent('click', { click_target: clickTarget });
   });
 
-  // Scroll/time tracking
+  // Track scroll + session duration
   window.addEventListener('beforeunload', () => {
     const scrollDepth = Math.min(
       100,
@@ -55,8 +60,8 @@
     );
 
     const pageTimeSeconds = Math.round((Date.now() - startTime) / 1000);
-    const previousSessionTime = sessionStorage.getItem('session_time') || 0;
-    const newSessionTime = parseInt(previousSessionTime) + pageTimeSeconds;
+    const previousSessionTime = parseInt(sessionStorage.getItem('session_time') || 0, 10);
+    const newSessionTime = previousSessionTime + pageTimeSeconds;
     sessionStorage.setItem('session_time', newSessionTime);
 
     sendEvent('scroll', {
@@ -64,5 +69,8 @@
       page_time_seconds: pageTimeSeconds,
       session_duration: newSessionTime
     });
+
+    // Clear page view flag to allow new one on reload
+    sessionStorage.removeItem('page_view_sent');
   });
 })();
