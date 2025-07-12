@@ -1,20 +1,13 @@
-# Use official Node.js 18 LTS image
 FROM node:18
 
-# Set working directory
 WORKDIR /app
 
-# Only copy package files first (for caching)
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --omit=dev
+RUN npm ci     
 
-# Copy the rest of the application
 COPY . .
 
-# Expose app port
 EXPOSE 4000
 
-# Run the app
 CMD ["node", "index.js"]
