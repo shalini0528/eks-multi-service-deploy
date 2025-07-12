@@ -13,6 +13,7 @@
 
   const pageUrl = window.location.pathname;
   const lastTrackedPage = sessionStorage.getItem('last_tracked_page_url');
+  let scrollEventSent = false;
 
   const sendEvent = (eventType, data = {}) => {
     const payload = {
@@ -36,13 +37,13 @@
     }).catch(err => console.error('Analytics send failed', err));
   };
 
-  // Track page view ONLY if it’s a new page
+  // Page view
   if (lastTrackedPage !== pageUrl) {
     sendEvent('page_view');
     sessionStorage.setItem('last_tracked_page_url', pageUrl);
   }
 
-  // Click tracking
+  // Clicks
   document.addEventListener('click', (e) => {
     const tag = e.target.tagName;
     const id = e.target.id ? `#${e.target.id}` : '';
@@ -51,22 +52,29 @@
     sendEvent('click', { click_target: clickTarget });
   });
 
-  // Scroll/time tracking
-  window.addEventListener('beforeunload', () => {
-    const scrollDepth = Math.min(
-      100,
-      Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100)
-    );
+  // Scroll to bottom detection
+  window.addEventListener('scroll', () => {
+    if (scrollEventSent) return;
 
-    const pageTimeSeconds = Math.round((Date.now() - startTime) / 1000);
-    const previousSession = parseInt(sessionStorage.getItem('session_time') || '0', 10);
-    const sessionDuration = previousSession + pageTimeSeconds;
-    sessionStorage.setItem('session_time', sessionDuration);
+    const scrollTop = window.scrollY;
+    const winHeight = window.innerHeight;
+    const docHeight = document.body.scrollHeight;
 
-    sendEvent('scroll', {
-      scroll_depth: scrollDepth,
-      page_time_seconds: pageTimeSeconds,
-      session_duration: sessionDuration
-    });
+    const scrollDepth = Math.min(100, Math.round(((scrollTop + winHeight) / docHeight) * 100));
+
+    if (scrollDepth >= 90) {
+      const pageTimeSeconds = Math.round((Date.now() - startTime) / 1000);
+      const previousSession = parseInt(sessionStorage.getItem('session_time') || '0', 10);
+      const sessionDuration = previousSession + pageTimeSeconds;
+      sessionStorage.setItem('session_time', sessionDuration);
+
+      sendEvent('scroll', {
+        scroll_depth: scrollDepth,
+        page_time_seconds: pageTimeSeconds,
+        session_duration: sessionDuration
+      });
+
+      scrollEventSent = true;
+    }
   });
 })();
