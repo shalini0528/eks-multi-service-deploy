@@ -6,29 +6,19 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Allow only static frontend origin
-const allowedOrigins = ['http://35.170.54.198'];
-
-// CORS configuration
+// Temporarily allow all origins (for debugging)
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS: Not allowed by policy'));
-    }
-  },
+  origin: true, // Reflects the Origin header
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200,
 }));
 
-// Allow express to parse JSON bodies
-app.use(express.json());
-
-// Handle preflight CORS requests
+// Handle preflight OPTIONS
 app.options('*', cors());
+
+// Parse JSON bodies
+app.use(express.json());
 
 // ClickHouse client setup
 const clickhouse = createClient({
@@ -38,12 +28,12 @@ const clickhouse = createClient({
   database: process.env.CH_DB || 'lugxanalytics',
 });
 
-// Health check route
+// Health check
 app.get('/', (req, res) => {
   res.send('Analytics Service is healthy');
 });
 
-// Analytics tracking route
+// /track endpoint
 app.post('/track', async (req, res) => {
   const { event_type, page_url } = req.body;
 
