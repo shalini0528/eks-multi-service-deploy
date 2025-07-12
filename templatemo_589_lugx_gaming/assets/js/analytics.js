@@ -1,5 +1,5 @@
 (function () {
-  // UUID generator for event/session IDs
+  // UUID generator
   function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = Math.random() * 16 | 0;
@@ -8,19 +8,22 @@
     });
   }
 
+  // Session & page context
   const startTime = Date.now();
   const sessionId = sessionStorage.getItem('session_id') || generateUUID();
   sessionStorage.setItem('session_id', sessionId);
   const pageUrl = window.location.pathname;
 
-  const sendEvent = (eventType, data = {}) => {
-    const timestamp = new Date().toISOString();
+  // Prevent duplicate page_view per load
+  const pageViewSent = sessionStorage.getItem('page_view_sent');
 
+  // Send event helper
+  const sendEvent = (eventType, data = {}) => {
     const payload = {
       id: generateUUID(),
       event_type: eventType,
       page_url: pageUrl,
-      timestamp: timestamp,
+      timestamp: new Date().toISOString(),
       session_id: sessionId,
       click_target: null,
       scroll_depth: null,
@@ -37,22 +40,22 @@
     }).catch(err => console.error('Analytics send failed', err));
   };
 
-  // Guard: prevent double firing page_view
-  if (!sessionStorage.getItem('page_view_sent')) {
+  // Track page view if not sent
+  if (!pageViewSent) {
     sendEvent('page_view');
     sessionStorage.setItem('page_view_sent', 'true');
   }
 
-  // Track clicks
+  // Track all clicks (basic delegation)
   document.addEventListener('click', (e) => {
     const tag = e.target.tagName;
     const id = e.target.id ? `#${e.target.id}` : '';
     const className = e.target.className ? `.${e.target.className.split(' ').join('.')}` : '';
-    const clickTarget = `${tag}${id}${className}`;
+    const clickTarget = `${tag}${id}${className}`.replace(/\.+$/, ''); // remove trailing dot
     sendEvent('click', { click_target: clickTarget });
   });
 
-  // Track scroll + session duration
+  // On unload, track scroll + duration
   window.addEventListener('beforeunload', () => {
     const scrollDepth = Math.min(
       100,
@@ -60,17 +63,17 @@
     );
 
     const pageTimeSeconds = Math.round((Date.now() - startTime) / 1000);
-    const previousSessionTime = parseInt(sessionStorage.getItem('session_time') || 0, 10);
-    const newSessionTime = previousSessionTime + pageTimeSeconds;
-    sessionStorage.setItem('session_time', newSessionTime);
+    const previousSession = parseInt(sessionStorage.getItem('session_time') || '0', 10);
+    const sessionDuration = previousSession + pageTimeSeconds;
+    sessionStorage.setItem('session_time', sessionDuration);
 
     sendEvent('scroll', {
       scroll_depth: scrollDepth,
       page_time_seconds: pageTimeSeconds,
-      session_duration: newSessionTime
+      session_duration: sessionDuration
     });
 
-    // Clear page view flag to allow new one on reload
+    // Allow page_view to fire again on next page
     sessionStorage.removeItem('page_view_sent');
   });
 })();
