@@ -36,7 +36,7 @@ jobs:
       - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build & Push game-service
+      - name: Build & Push game-service image
         run: |
           IMAGE_TAG=${{ github.sha }}
           docker build -t shalini1772/game-service:$IMAGE_TAG ./game-service
@@ -48,20 +48,20 @@ jobs:
           aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           aws configure set region "${{ secrets.AWS_REGION }}"
 
-      - name: Decode and export kubeconfig
+      - name: Setup kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Deploy game-service
+      - name: Replace image tag and deploy game-service
         run: |
           export KUBECONFIG=$PWD/kubeconfig
+          export IMAGE_TAG=${{ github.sha }}
           kubectl create namespace game --dry-run=client -o yaml | kubectl apply -f -
+          envsubst < game-service/k8s/game-service-deployment.yaml | kubectl apply -n game -f -
           kubectl apply -f game-service/k8s/mysql-deployment.yaml -n game
-          kubectl apply -f game-service/k8s/game-service-deployment.yaml -n game
           kubectl apply -f game-service/k8s/game-ingress.yaml -n game
-          kubectl set image deployment/game-service game-service=shalini1772/game-service:${{ github.sha }} -n game
-          kubectl rollout restart deployment/game-service -n game
+          kubectl rollout status deployment/game-service -n game
 
   deploy-analytics:
     needs: detect-changes
@@ -73,7 +73,7 @@ jobs:
       - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build & Push analytics-service
+      - name: Build & Push analytics-service image
         run: |
           IMAGE_TAG=${{ github.sha }}
           docker build -t shalini1772/analytics-service:$IMAGE_TAG ./analytics-service
@@ -85,19 +85,19 @@ jobs:
           aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           aws configure set region "${{ secrets.AWS_REGION }}"
 
-      - name: Decode and export kubeconfig
+      - name: Setup kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Deploy analytics-service
+      - name: Replace image tag and deploy analytics-service
         run: |
           export KUBECONFIG=$PWD/kubeconfig
+          export IMAGE_TAG=${{ github.sha }}
           kubectl create namespace analytics --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f analytics-service/k8s/analytics-service-deployment.yaml -n analytics
+          envsubst < analytics-service/k8s/analytics-service-deployment.yaml | kubectl apply -n analytics -f -
           kubectl apply -f analytics-service/k8s/analytics-ingress.yaml -n analytics
-          kubectl set image deployment/analytics-service analytics-service=shalini1772/analytics-service:${{ github.sha }} -n analytics
-          kubectl rollout restart deployment/analytics-service -n analytics
+          kubectl rollout status deployment/analytics-service -n analytics
 
   deploy-order:
     needs: detect-changes
@@ -109,7 +109,7 @@ jobs:
       - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build & Push order-service
+      - name: Build & Push order-service image
         run: |
           IMAGE_TAG=${{ github.sha }}
           docker build -t shalini1772/order-service:$IMAGE_TAG ./order-service
@@ -121,17 +121,17 @@ jobs:
           aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           aws configure set region "${{ secrets.AWS_REGION }}"
 
-      - name: Decode and export kubeconfig
+      - name: Setup kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Deploy order-service
+      - name: Replace image tag and deploy order-service
         run: |
           export KUBECONFIG=$PWD/kubeconfig
+          export IMAGE_TAG=${{ github.sha }}
           kubectl create namespace order --dry-run=client -o yaml | kubectl apply -f -
+          envsubst < order-service/k8s/order-service-deployment.yaml | kubectl apply -n order -f -
           kubectl apply -f order-service/k8s/mysql-deployment.yaml -n order
-          kubectl apply -f order-service/k8s/order-service-deployment.yaml -n order
           kubectl apply -f order-service/k8s/order-ingress.yaml -n order
-          kubectl set image deployment/order-service order-service=shalini1772/order-service:${{ github.sha }} -n order
-          kubectl rollout restart deployment/order-service -n order
+          kubectl rollout status deployment/order-service -n order
