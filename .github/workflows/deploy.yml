@@ -53,11 +53,12 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Update game-service Deployment and restart
+      - name: Deploy game-service
         run: |
           export KUBECONFIG=$PWD/kubeconfig
           kubectl create namespace game --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f game-service/k8s/mysql-deployment.yaml -n game
+          kubectl apply -f game-service/k8s/game-service-deployment.yaml -n game
           kubectl apply -f game-service/k8s/game-ingress.yaml -n game
           kubectl set image deployment/game-service game-service=shalini1772/game-service:${{ github.sha }} -n game
           kubectl rollout restart deployment/game-service -n game
@@ -89,10 +90,11 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Update analytics-service Deployment and restart
+      - name: Deploy analytics-service
         run: |
           export KUBECONFIG=$PWD/kubeconfig
           kubectl create namespace analytics --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f analytics-service/k8s/analytics-service-deployment.yaml -n analytics
           kubectl apply -f analytics-service/k8s/analytics-ingress.yaml -n analytics
           kubectl set image deployment/analytics-service analytics-service=shalini1772/analytics-service:${{ github.sha }} -n analytics
           kubectl rollout restart deployment/analytics-service -n analytics
@@ -124,11 +126,12 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Update order-service Deployment and restart
+      - name: Deploy order-service
         run: |
           export KUBECONFIG=$PWD/kubeconfig
           kubectl create namespace order --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f order-service/k8s/mysql-deployment.yaml -n order
+          kubectl apply -f order-service/k8s/order-service-deployment.yaml -n order
           kubectl apply -f order-service/k8s/order-ingress.yaml -n order
           kubectl set image deployment/order-service order-service=shalini1772/order-service:${{ github.sha }} -n order
           kubectl rollout restart deployment/order-service -n order
