@@ -1,26 +1,23 @@
 import express from 'express';
+import cors from 'cors';
 import { createClient } from '@clickhouse/client';
 import { randomUUID } from 'crypto';
-import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Temporarily allow all origins (for debugging)
 app.use(cors({
-  origin: true, // Reflects the Origin header
+  origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
 }));
 
-// Handle preflight OPTIONS
-app.options('*', cors());
+app.options('*', (req, res) => {
+  res.sendStatus(204);
+});
 
-// Parse JSON bodies
 app.use(express.json());
 
-// ClickHouse client setup
 const clickhouse = createClient({
   url: process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
   username: process.env.CH_USERNAME || 'default',
@@ -28,12 +25,10 @@ const clickhouse = createClient({
   database: process.env.CH_DB || 'lugxanalytics',
 });
 
-// Health check
 app.get('/', (req, res) => {
   res.send('Analytics Service is healthy');
 });
 
-// /track endpoint
 app.post('/track', async (req, res) => {
   const { event_type, page_url } = req.body;
 
@@ -60,7 +55,6 @@ app.post('/track', async (req, res) => {
   }
 });
 
-// Start the server
 app.listen(PORT, () => {
-  console.log(`Analytics Service running on port ${PORT}`);
+  console.log(`Analytics Service running on http://localhost:${PORT}`);
 });
