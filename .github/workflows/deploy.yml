@@ -53,15 +53,15 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Replace image tag and deploy game-service
+      - name: Delete old deployment and apply new game-service
         run: |
-          export KUBECONFIG=$PWD/kubeconfig
           export IMAGE_TAG=${{ github.sha }}
           kubectl create namespace game --dry-run=client -o yaml | kubectl apply -f -
+          kubectl delete deployment game-service -n game --ignore-not-found
           envsubst < game-service/k8s/game-service-deployment.yaml | kubectl apply -n game -f -
           kubectl apply -f game-service/k8s/mysql-deployment.yaml -n game
           kubectl apply -f game-service/k8s/game-ingress.yaml -n game
-          kubectl rollout status deployment/game-service -n game
+          kubectl rollout status deployment/game-service -n game --timeout=60s || kubectl describe deployment game-service -n game
 
   deploy-analytics:
     needs: detect-changes
@@ -90,14 +90,14 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Replace image tag and deploy analytics-service
+      - name: Delete old deployment and apply new analytics-service
         run: |
-          export KUBECONFIG=$PWD/kubeconfig
           export IMAGE_TAG=${{ github.sha }}
           kubectl create namespace analytics --dry-run=client -o yaml | kubectl apply -f -
+          kubectl delete deployment analytics-service -n analytics --ignore-not-found
           envsubst < analytics-service/k8s/analytics-service-deployment.yaml | kubectl apply -n analytics -f -
           kubectl apply -f analytics-service/k8s/analytics-ingress.yaml -n analytics
-          kubectl rollout status deployment/analytics-service -n analytics
+          kubectl rollout status deployment/analytics-service -n analytics --timeout=60s || kubectl describe deployment analytics-service -n analytics
 
   deploy-order:
     needs: detect-changes
@@ -126,12 +126,12 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Replace image tag and deploy order-service
+      - name: Delete old deployment and apply new order-service
         run: |
-          export KUBECONFIG=$PWD/kubeconfig
           export IMAGE_TAG=${{ github.sha }}
           kubectl create namespace order --dry-run=client -o yaml | kubectl apply -f -
+          kubectl delete deployment order-service -n order --ignore-not-found
           envsubst < order-service/k8s/order-service-deployment.yaml | kubectl apply -n order -f -
           kubectl apply -f order-service/k8s/mysql-deployment.yaml -n order
           kubectl apply -f order-service/k8s/order-ingress.yaml -n order
-          kubectl rollout status deployment/order-service -n order
+          kubectl rollout status deployment/order-service -n order --timeout=60s || kubectl describe deployment order-service -n order
