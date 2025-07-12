@@ -12,8 +12,7 @@ jobs:
       analytics: ${{ steps.filter.outputs.analytics }}
       order: ${{ steps.filter.outputs.order }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Detect which service changed
         id: filter
@@ -37,9 +36,10 @@ jobs:
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build and push game-service image
+      - name: Build, tag, and push game-service
         run: |
-          docker build -t shalini1772/game-service:0.1 ./game-service
+          docker build -t game-service ./game-service
+          docker tag game-service shalini1772/game-service:0.1
           docker push shalini1772/game-service:0.1
 
       - name: Configure Kubeconfig
@@ -47,9 +47,13 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Deploy game-service to Kubernetes
+      - name: Deploy to EKS - game-service
         run: |
-          kubectl apply -f ./game-service/k8s
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl create namespace game --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f game-service/k8s/game-service-deployment.yaml -n game
+          kubectl apply -f game-service/k8s/mysql-deployment.yaml -n game
+          kubectl apply -f game-service/k8s/game-ingress.yaml -n game
 
   deploy-analytics:
     needs: detect-changes
@@ -61,19 +65,23 @@ jobs:
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build and push analytics-service image
+      - name: Build, tag, and push analytics-service
         run: |
-          docker build -t shalini1772/analytics-service:0.3 ./analytics-service
-          docker push shalini1772/analytics-service:0.3
+          docker build -t analytics-service ./analytics-service
+          docker tag analytics-service shalini1772/analytics-service:0.1
+          docker push shalini1772/analytics-service:0.1
 
       - name: Configure Kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Deploy analytics-service to Kubernetes
+      - name: Deploy to EKS - analytics-service
         run: |
-          kubectl apply -f ./analytics-service/k8s
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl create namespace analytics --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f analytics-service/k8s/analytics-service-deployment.yaml -n analytics
+          kubectl apply -f analytics-service/k8s/analytics-ingress.yaml -n analytics
 
   deploy-order:
     needs: detect-changes
@@ -85,9 +93,10 @@ jobs:
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build and push order-service image
+      - name: Build, tag, and push order-service
         run: |
-          docker build -t shalini1772/order-service:0.1 ./order-service
+          docker build -t order-service ./order-service
+          docker tag order-service shalini1772/order-service:0.1
           docker push shalini1772/order-service:0.1
 
       - name: Configure Kubeconfig
@@ -95,6 +104,10 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Deploy order-service to Kubernetes
+      - name: Deploy to EKS - order-service
         run: |
-          kubectl apply -f ./order-service/k8s
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl create namespace order --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f order-service/k8s/order-service-deployment.yaml -n order
+          kubectl apply -f order-service/k8s/mysql-deployment.yaml -n order
+          kubectl apply -f order-service/k8s/order-ingress.yaml -n order
