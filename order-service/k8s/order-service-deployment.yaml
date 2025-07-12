@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
       - name: order-service
-        image: shalini1772/order-service:0.1
-        imagePullPolicy: IfNotPresent
+        image: shalini1772/order-service:${IMAGE_TAG}
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
