@@ -1,6 +1,16 @@
+<script>
 (function () {
+  // Polyfill UUID generator for all browsers
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
   const startTime = Date.now();
-  const sessionId = sessionStorage.getItem('session_id') || crypto.randomUUID();
+  const sessionId = sessionStorage.getItem('session_id') || generateUUID();
   sessionStorage.setItem('session_id', sessionId);
 
   const sendEvent = (eventType, data = {}) => {
@@ -20,8 +30,10 @@
     }).catch(err => console.error('Analytics send failed', err));
   };
 
+  // Track page view
   sendEvent('page_view');
 
+  // Track clicks
   document.addEventListener('click', (e) => {
     const tag = e.target.tagName;
     const id = e.target.id ? `#${e.target.id}` : '';
@@ -30,6 +42,7 @@
     sendEvent('click', { click_target: clickTarget });
   });
 
+  // Track scroll + time before unload
   window.addEventListener('beforeunload', () => {
     const scrollDepth = Math.min(
       100,
@@ -47,3 +60,4 @@
     });
   });
 })();
+</script>
