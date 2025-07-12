@@ -1,0 +1,100 @@
+name: CI/CD for Microservices
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      game: ${{ steps.filter.outputs.game }}
+      analytics: ${{ steps.filter.outputs.analytics }}
+      order: ${{ steps.filter.outputs.order }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Detect which service changed
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            game:
+              - 'game-service/**'
+            analytics:
+              - 'analytics-service/**'
+            order:
+              - 'order-service/**'
+
+  deploy-game:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.game == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and push game-service image
+        run: |
+          docker build -t shalini1772/game-service:0.1 ./game-service
+          docker push shalini1772/game-service:0.1
+
+      - name: Configure Kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
+
+      - name: Deploy game-service to Kubernetes
+        run: |
+          kubectl apply -f ./game-service/k8s
+
+  deploy-analytics:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.analytics == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and push analytics-service image
+        run: |
+          docker build -t shalini1772/analytics-service:0.3 ./analytics-service
+          docker push shalini1772/analytics-service:0.3
+
+      - name: Configure Kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
+
+      - name: Deploy analytics-service to Kubernetes
+        run: |
+          kubectl apply -f ./analytics-service/k8s
+
+  deploy-order:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.order == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and push order-service image
+        run: |
+          docker build -t shalini1772/order-service:0.1 ./order-service
+          docker push shalini1772/order-service:0.1
+
+      - name: Configure Kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
+
+      - name: Deploy order-service to Kubernetes
+        run: |
+          kubectl apply -f ./order-service/k8s
