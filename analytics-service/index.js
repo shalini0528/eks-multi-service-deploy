@@ -26,7 +26,7 @@ const clickhouse = createClient({
 });
 
 app.get('/', (req, res) => {
-  res.send('Analytics Service is healthy!!!!@@@');
+  res.send('Analytics Service is healthy!!!!@@@@');
 });
 
 app.post('/track', async (req, res) => {
