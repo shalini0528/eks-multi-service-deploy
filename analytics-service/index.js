@@ -9,22 +9,33 @@ app.use(express.json());
 
 const PORT = 4000;
 
-// Check Analytics service health
+// ClickHouse client setup
+const clickhouse = createClient({
+  url: process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
+  username: process.env.CH_USERNAME || 'default',
+  password: process.env.CH_PASSWORD || '2NJh7XE.eUV2U',
+  database: process.env.CH_DB || 'lugxanalytics',
+});
+
+// Health check
 app.get('/', (req, res) => {
   res.send('Analytics Service is healthy!');
 });
 
-// ClickHouse client
-const clickhouse = createClient({
-  url:  process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
-  username: process.env.CH_USERNAME || "default",
-  password: process.env.CH_PASSWORD || "2NJh7XE.eUV2U",
-  database: process.env.CH_DB || "lugxanalytics",
-});
-
-// POST /track - Capture analytics
+// Track endpoint
 app.post('/track', async (req, res) => {
-  const { event_type, page_url } = req.body;
+  const {
+    event_type,
+    page_url,
+    session_id,
+    click_target = null,
+    scroll_depth = null,
+    page_time_seconds = null,
+    session_time = null,
+    user_agent = null,
+    referrer = null,
+    ip_address = req.headers['x-forwarded-for'] || req.connection.remoteAddress || null,
+  } = req.body;
 
   try {
     await clickhouse.insert({
@@ -33,9 +44,17 @@ app.post('/track', async (req, res) => {
         id: randomUUID(),
         event_type,
         page_url,
+        session_id,
+        click_target,
+        scroll_depth,
+        page_time_seconds,
+        session_time,
+        user_agent,
+        referrer,
+        ip_address,
         timestamp: new Date()
       }],
-      format: 'JSONEachRow'
+      format: 'JSONEachRow',
     });
 
     res.status(200).json({ message: 'Event captured' });
