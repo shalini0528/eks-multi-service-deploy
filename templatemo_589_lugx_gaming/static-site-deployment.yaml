@@ -6,7 +6,7 @@ metadata:
   labels:
     app: static-site
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: static-site
@@ -16,10 +16,10 @@ spec:
         app: static-site
     spec:
       containers:
-      - name: static-site
-        image: shalini1772/static-site:${IMAGE_TAG}
-        ports:
-        - containerPort: 80
+        - name: static-site
+          image: shalini1772/static-site:${IMAGE_TAG}
+          ports:
+            - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
