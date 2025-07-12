@@ -26,14 +26,13 @@ jobs:
             order:
               - 'order-service/**'
 
-  deploy-template:
+  deploy-services:
+    needs: detect-changes
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         service: [game, analytics, order]
-    needs: detect-changes
     if: needs.detect-changes.outputs[matrix.service] == 'true'
-    name: Deploy ${{ matrix.service }}-service
-    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -56,29 +55,32 @@ jobs:
       - name: Setup kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
+          echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
 
-      - name: Deploy to Kubernetes
+      - name: Deploy to EKS
+        env:
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          export IMAGE_TAG=${{ github.sha }}
           NS=${{ matrix.service }}
-          
+          DEPLOY_DIR=${NS}-service/k8s
+
           # Create namespace if not exists
           kubectl create namespace $NS --dry-run=client -o yaml | kubectl apply -f -
 
-          # Delete old pods to ensure new rollout
-          kubectl delete pods -l app=${{ matrix.service }}-service -n $NS --ignore-not-found
+          # Clean up old pods to avoid stuck rollouts
+          kubectl delete pods -l app=${NS}-service -n $NS --ignore-not-found
 
-          # Apply deployment with tag substitution
-          envsubst < $NS-service/k8s/$NS-service-deployment.yaml | kubectl apply -n $NS -f -
+          # Apply deployment with image tag substitution
+          envsubst < $DEPLOY_DIR/${NS}-service-deployment.yaml | kubectl apply -n $NS -f -
 
-          # Apply optional MySQL (for game and order)
+          # Apply MySQL if needed
           if [[ "$NS" == "game" || "$NS" == "order" ]]; then
-            kubectl apply -f $NS-service/k8s/mysql-deployment.yaml -n $NS
+            kubectl apply -f $DEPLOY_DIR/mysql-deployment.yaml -n $NS
           fi
 
           # Apply ingress
-          kubectl apply -f $NS-service/k8s/$NS-ingress.yaml -n $NS
+          kubectl apply -f $DEPLOY_DIR/${NS}-ingress.yaml -n $NS
 
           # Wait for rollout
-          kubectl rollout status deployment/${{ matrix.service }}-service -n $NS
+          kubectl rollout status deployment/${NS}-service -n $NS
