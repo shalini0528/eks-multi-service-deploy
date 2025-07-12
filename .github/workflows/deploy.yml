@@ -33,33 +33,34 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
+      - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build, tag, and push game-service
+      - name: Build & Push game-service
         run: |
-          docker build -t game-service ./game-service
-          docker tag game-service shalini1772/game-service:0.1
-          docker push shalini1772/game-service:0.1
+          IMAGE_TAG=${{ github.sha }}
+          docker build -t shalini1772/game-service:$IMAGE_TAG ./game-service
+          docker push shalini1772/game-service:$IMAGE_TAG
 
-      - name: Set up AWS credentials
+      - name: Configure AWS CLI
         run: |
           aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
           aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           aws configure set region "${{ secrets.AWS_REGION }}"
 
-      - name: Configure Kubeconfig
+      - name: Decode and export kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Deploy to EKS - game-service
+      - name: Update game-service Deployment and restart
         run: |
           export KUBECONFIG=$PWD/kubeconfig
           kubectl create namespace game --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f game-service/k8s/game-service-deployment.yaml -n game
           kubectl apply -f game-service/k8s/mysql-deployment.yaml -n game
           kubectl apply -f game-service/k8s/game-ingress.yaml -n game
+          kubectl set image deployment/game-service game-service=shalini1772/game-service:${{ github.sha }} -n game
+          kubectl rollout restart deployment/game-service -n game
 
   deploy-analytics:
     needs: detect-changes
@@ -68,32 +69,33 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
+      - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build, tag, and push analytics-service
+      - name: Build & Push analytics-service
         run: |
-          docker build -t analytics-service ./analytics-service
-          docker tag analytics-service shalini1772/analytics-service:0.1
-          docker push shalini1772/analytics-service:0.1
+          IMAGE_TAG=${{ github.sha }}
+          docker build -t shalini1772/analytics-service:$IMAGE_TAG ./analytics-service
+          docker push shalini1772/analytics-service:$IMAGE_TAG
 
-      - name: Set up AWS credentials
+      - name: Configure AWS CLI
         run: |
           aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
           aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           aws configure set region "${{ secrets.AWS_REGION }}"
 
-      - name: Configure Kubeconfig
+      - name: Decode and export kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Deploy to EKS - analytics-service
+      - name: Update analytics-service Deployment and restart
         run: |
           export KUBECONFIG=$PWD/kubeconfig
           kubectl create namespace analytics --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f analytics-service/k8s/analytics-service-deployment.yaml -n analytics
           kubectl apply -f analytics-service/k8s/analytics-ingress.yaml -n analytics
+          kubectl set image deployment/analytics-service analytics-service=shalini1772/analytics-service:${{ github.sha }} -n analytics
+          kubectl rollout restart deployment/analytics-service -n analytics
 
   deploy-order:
     needs: detect-changes
@@ -102,30 +104,31 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
+      - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build, tag, and push order-service
+      - name: Build & Push order-service
         run: |
-          docker build -t order-service ./order-service
-          docker tag order-service shalini1772/order-service:0.1
-          docker push shalini1772/order-service:0.1
+          IMAGE_TAG=${{ github.sha }}
+          docker build -t shalini1772/order-service:$IMAGE_TAG ./order-service
+          docker push shalini1772/order-service:$IMAGE_TAG
 
-      - name: Set up AWS credentials
+      - name: Configure AWS CLI
         run: |
           aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
           aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           aws configure set region "${{ secrets.AWS_REGION }}"
 
-      - name: Configure Kubeconfig
+      - name: Decode and export kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           export KUBECONFIG=$PWD/kubeconfig
 
-      - name: Deploy to EKS - order-service
+      - name: Update order-service Deployment and restart
         run: |
           export KUBECONFIG=$PWD/kubeconfig
           kubectl create namespace order --dry-run=client -o yaml | kubectl apply -f -
-          kubectl apply -f order-service/k8s/order-service-deployment.yaml -n order
           kubectl apply -f order-service/k8s/mysql-deployment.yaml -n order
           kubectl apply -f order-service/k8s/order-ingress.yaml -n order
+          kubectl set image deployment/order-service order-service=shalini1772/order-service:${{ github.sha }} -n order
+          kubectl rollout restart deployment/order-service -n order
