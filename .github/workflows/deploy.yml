@@ -26,21 +26,26 @@ jobs:
             order:
               - 'order-service/**'
 
-  deploy-game:
+  deploy-template:
+    strategy:
+      matrix:
+        service: [game, analytics, order]
     needs: detect-changes
-    if: needs.detect-changes.outputs.game == 'true'
+    if: needs.detect-changes.outputs[matrix.service] == 'true'
+    name: Deploy ${{ matrix.service }}-service
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build & Push game-service image
+      - name: Build & Push Docker Image
         run: |
           IMAGE_TAG=${{ github.sha }}
-          docker build -t shalini1772/game-service:$IMAGE_TAG ./game-service
-          docker push shalini1772/game-service:$IMAGE_TAG
+          docker build -t shalini1772/${{ matrix.service }}-service:$IMAGE_TAG ./${{ matrix.service }}-service
+          docker push shalini1772/${{ matrix.service }}-service:$IMAGE_TAG
 
       - name: Configure AWS CLI
         run: |
@@ -51,87 +56,29 @@ jobs:
       - name: Setup kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
+
+      - name: Deploy to Kubernetes
+        run: |
           export KUBECONFIG=$PWD/kubeconfig
-
-      - name: Delete old deployment and apply new game-service
-        run: |
           export IMAGE_TAG=${{ github.sha }}
-          kubectl create namespace game --dry-run=client -o yaml | kubectl apply -f -
-          kubectl delete deployment game-service -n game --ignore-not-found
-          envsubst < game-service/k8s/game-service-deployment.yaml | kubectl apply -n game -f -
-          kubectl apply -f game-service/k8s/mysql-deployment.yaml -n game
-          kubectl apply -f game-service/k8s/game-ingress.yaml -n game
-          kubectl rollout status deployment/game-service -n game --timeout=60s || kubectl describe deployment game-service -n game
+          NS=${{ matrix.service }}
+          
+          # Create namespace if not exists
+          kubectl create namespace $NS --dry-run=client -o yaml | kubectl apply -f -
 
-  deploy-analytics:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.analytics == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+          # Delete old pods to ensure new rollout
+          kubectl delete pods -l app=${{ matrix.service }}-service -n $NS --ignore-not-found
 
-      - name: Docker Login
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          # Apply deployment with tag substitution
+          envsubst < $NS-service/k8s/$NS-service-deployment.yaml | kubectl apply -n $NS -f -
 
-      - name: Build & Push analytics-service image
-        run: |
-          IMAGE_TAG=${{ github.sha }}
-          docker build -t shalini1772/analytics-service:$IMAGE_TAG ./analytics-service
-          docker push shalini1772/analytics-service:$IMAGE_TAG
+          # Apply optional MySQL (for game and order)
+          if [[ "$NS" == "game" || "$NS" == "order" ]]; then
+            kubectl apply -f $NS-service/k8s/mysql-deployment.yaml -n $NS
+          fi
 
-      - name: Configure AWS CLI
-        run: |
-          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          aws configure set region "${{ secrets.AWS_REGION }}"
+          # Apply ingress
+          kubectl apply -f $NS-service/k8s/$NS-ingress.yaml -n $NS
 
-      - name: Setup kubeconfig
-        run: |
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
-          export KUBECONFIG=$PWD/kubeconfig
-
-      - name: Delete old deployment and apply new analytics-service
-        run: |
-          export IMAGE_TAG=${{ github.sha }}
-          kubectl create namespace analytics --dry-run=client -o yaml | kubectl apply -f -
-          kubectl delete deployment analytics-service -n analytics --ignore-not-found
-          envsubst < analytics-service/k8s/analytics-service-deployment.yaml | kubectl apply -n analytics -f -
-          kubectl apply -f analytics-service/k8s/analytics-ingress.yaml -n analytics
-          kubectl rollout status deployment/analytics-service -n analytics --timeout=60s || kubectl describe deployment analytics-service -n analytics
-
-  deploy-order:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.order == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Docker Login
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Build & Push order-service image
-        run: |
-          IMAGE_TAG=${{ github.sha }}
-          docker build -t shalini1772/order-service:$IMAGE_TAG ./order-service
-          docker push shalini1772/order-service:$IMAGE_TAG
-
-      - name: Configure AWS CLI
-        run: |
-          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          aws configure set region "${{ secrets.AWS_REGION }}"
-
-      - name: Setup kubeconfig
-        run: |
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
-          export KUBECONFIG=$PWD/kubeconfig
-
-      - name: Delete old deployment and apply new order-service
-        run: |
-          export IMAGE_TAG=${{ github.sha }}
-          kubectl create namespace order --dry-run=client -o yaml | kubectl apply -f -
-          kubectl delete deployment order-service -n order --ignore-not-found
-          envsubst < order-service/k8s/order-service-deployment.yaml | kubectl apply -n order -f -
-          kubectl apply -f order-service/k8s/mysql-deployment.yaml -n order
-          kubectl apply -f order-service/k8s/order-ingress.yaml -n order
-          kubectl rollout status deployment/order-service -n order --timeout=60s || kubectl describe deployment order-service -n order
+          # Wait for rollout
+          kubectl rollout status deployment/${{ matrix.service }}-service -n $NS
