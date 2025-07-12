@@ -417,50 +417,9 @@ https://templatemo.com/tm-589-lugx-gaming
   <script src="assets/js/owl-carousel.js"></script>
   <script src="assets/js/counter.js"></script>
   <script src="assets/js/custom.js"></script>
+  <script src="assets/js/analytics.js"></script>
 
   </body>
 
   <script>
-(function () {
-
-  const sendEvent = (eventType, data = {}) => {
-    fetch('http://ae2098f8d4e284d408d7cab2e17cf26e-356597941.us-east-1.elb.amazonaws.com/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event_type: eventType,
-        page_url: window.location.pathname,
-        ...data
-      })
-    }).catch(err => console.error('Analytics send failed', err));
-  };
-
-  // 1. Page View
-  sendEvent('page_view');
-
-  // 2. Click
-  document.addEventListener('click', (e) => {
-    const tag = e.target.tagName;
-    const id = e.target.id ? `#${e.target.id}` : '';
-    const className = e.target.className ? `.${e.target.className.split(' ').join('.')}` : '';
-    const clickTarget = `${tag}${id}${className}`;
-    sendEvent('click', { click_target: clickTarget });
-  });
-
-  // 3. Scroll + Page Time (before leaving)
- window.addEventListener('beforeunload', () => {
-    const scrollDepth = Math.min(
-      100,
-      Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100)
-    );
-    const pageTimeSeconds = Math.round((Date.now() - startTime) / 1000);
-
-    sendEvent('scroll', {
-      scroll_depth: scrollDepth,
-      page_time_seconds: pageTimeSeconds
-    });
-  });
-})();
-</script>
-
 </html>
