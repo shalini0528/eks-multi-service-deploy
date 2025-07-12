@@ -1,5 +1,4 @@
 (function () {
-  // UUID generator
   function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = Math.random() * 16 | 0;
@@ -8,16 +7,13 @@
     });
   }
 
-  // Session & page context
   const startTime = Date.now();
   const sessionId = sessionStorage.getItem('session_id') || generateUUID();
   sessionStorage.setItem('session_id', sessionId);
+
   const pageUrl = window.location.pathname;
+  const lastTrackedPage = sessionStorage.getItem('last_tracked_page_url');
 
-  // Prevent duplicate page_view per load
-  const pageViewSent = sessionStorage.getItem('page_view_sent');
-
-  // Send event helper
   const sendEvent = (eventType, data = {}) => {
     const payload = {
       id: generateUUID(),
@@ -40,22 +36,22 @@
     }).catch(err => console.error('Analytics send failed', err));
   };
 
-  // Track page view if not sent
-  if (!pageViewSent) {
+  // Track page view ONLY if it’s a new page
+  if (lastTrackedPage !== pageUrl) {
     sendEvent('page_view');
-    sessionStorage.setItem('page_view_sent', 'true');
+    sessionStorage.setItem('last_tracked_page_url', pageUrl);
   }
 
-  // Track all clicks (basic delegation)
+  // Click tracking
   document.addEventListener('click', (e) => {
     const tag = e.target.tagName;
     const id = e.target.id ? `#${e.target.id}` : '';
     const className = e.target.className ? `.${e.target.className.split(' ').join('.')}` : '';
-    const clickTarget = `${tag}${id}${className}`.replace(/\.+$/, ''); // remove trailing dot
+    const clickTarget = `${tag}${id}${className}`.replace(/\.+$/, '');
     sendEvent('click', { click_target: clickTarget });
   });
 
-  // On unload, track scroll + duration
+  // Scroll/time tracking
   window.addEventListener('beforeunload', () => {
     const scrollDepth = Math.min(
       100,
@@ -72,8 +68,5 @@
       page_time_seconds: pageTimeSeconds,
       session_duration: sessionDuration
     });
-
-    // Allow page_view to fire again on next page
-    sessionStorage.removeItem('page_view_sent');
   });
 })();
