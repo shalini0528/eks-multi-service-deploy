@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: analytics-service
-        image: shalini1772/analytics-service:0.1
+        image: shalini1772/analytics-service:0.2
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 4000
