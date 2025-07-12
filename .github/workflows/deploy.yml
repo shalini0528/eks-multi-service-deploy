@@ -97,10 +97,10 @@ jobs:
           kubectl apply -f analytics-service/k8s/analytics-ingress.yaml -n analytics
           kubectl rollout status deployment/analytics-service -n analytics
 
-      - name: Debug logs if rollout fails
+      - name: Debug if rollout fails
         if: failure()
         run: |
-          echo "Rollout failed. Fetching pod logs:"
+          echo "Rollout failed. Logs:"
           kubectl get pods -n analytics
           kubectl logs -l app=analytics-service -n analytics --tail=100 || true
 
