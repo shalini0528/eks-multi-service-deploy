@@ -4,32 +4,33 @@ import { randomUUID } from 'crypto';
 import cors from 'cors';
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
-// Replace this with static website's public IP (from EC2)
-const allowedOrigin = 'http://35.170.54.198';
+// Allow only static frontend origin
+const allowedOrigins = ['http://35.170.54.198'];
 
-// CORS setup to allow only static website
+// CORS configuration
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || origin === allowedOrigin) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('CORS: Not allowed by policy'));
     }
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
-  optionsSuccessStatus: 200
+  credentials: true,
+  optionsSuccessStatus: 200,
 }));
 
-// Enable JSON parsing
+// Allow express to parse JSON bodies
 app.use(express.json());
 
-// Preflight handler for any route
+// Handle preflight CORS requests
 app.options('*', cors());
 
-// ClickHouse client config
+// ClickHouse client setup
 const clickhouse = createClient({
   url: process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
   username: process.env.CH_USERNAME || 'default',
@@ -37,12 +38,12 @@ const clickhouse = createClient({
   database: process.env.CH_DB || 'lugxanalytics',
 });
 
-// Health check endpoint
+// Health check route
 app.get('/', (req, res) => {
   res.send('Analytics Service is healthy');
 });
 
-// Analytics tracking endpoint
+// Analytics tracking route
 app.post('/track', async (req, res) => {
   const { event_type, page_url } = req.body;
 
@@ -71,5 +72,5 @@ app.post('/track', async (req, res) => {
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Analytics Service running at http://localhost:${PORT}`);
+  console.log(`Analytics Service running on port ${PORT}`);
 });
