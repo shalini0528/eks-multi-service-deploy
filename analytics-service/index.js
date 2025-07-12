@@ -11,7 +11,7 @@ const PORT = 4000;
 
 // Check Analytics service health
 app.get('/', (req, res) => {
-  res.send('Analytics Service is healthy');
+  res.send('Analytics Service is healthy!');
 });
 
 // ClickHouse client
