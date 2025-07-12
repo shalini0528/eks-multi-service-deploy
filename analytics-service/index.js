@@ -6,28 +6,28 @@ import cors from 'cors';
 const app = express();
 const PORT = 4000;
 
-const allowedOrigins = [
-  'http://35.170.54.198', // EC2 frontend (static website)
-];
+// Replace this with static website's public IP (from EC2)
+const allowedOrigin = 'http://35.170.54.198';
 
-// CORS middleware (custom origin check)
+// CORS setup to allow only static website
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || origin === allowedOrigin) {
       callback(null, true);
     } else {
-      callback(new Error('CORS not allowed for this origin'));
+      callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
-  optionsSuccessStatus: 200,
+  optionsSuccessStatus: 200
 }));
 
+// Enable JSON parsing
 app.use(express.json());
 
-// Preflight requests (for CORS)
-app.options('/track', cors());
+// Preflight handler for any route
+app.options('*', cors());
 
 // ClickHouse client config
 const clickhouse = createClient({
@@ -37,12 +37,12 @@ const clickhouse = createClient({
   database: process.env.CH_DB || 'lugxanalytics',
 });
 
-// Health check
+// Health check endpoint
 app.get('/', (req, res) => {
   res.send('Analytics Service is healthy');
 });
 
-// POST /track - Analytics endpoint
+// Analytics tracking endpoint
 app.post('/track', async (req, res) => {
   const { event_type, page_url } = req.body;
 
@@ -69,7 +69,7 @@ app.post('/track', async (req, res) => {
   }
 });
 
-// Start server
+// Start the server
 app.listen(PORT, () => {
   console.log(`Analytics Service running at http://localhost:${PORT}`);
 });
