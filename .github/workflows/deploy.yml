@@ -39,7 +39,8 @@ jobs:
       - name: Build & Push game-service image
         run: |
           IMAGE_TAG=${{ github.sha }}
-          docker build -t shalini1772/game-service:$IMAGE_TAG ./game-service
+          cd game-service
+          docker build --no-cache -t shalini1772/game-service:$IMAGE_TAG .
           docker push shalini1772/game-service:$IMAGE_TAG
 
       - name: Configure AWS CLI & kubeconfig
@@ -75,7 +76,8 @@ jobs:
       - name: Build & Push analytics-service image
         run: |
           IMAGE_TAG=${{ github.sha }}
-          docker build -t shalini1772/analytics-service:$IMAGE_TAG ./analytics-service
+          cd analytics-service
+          docker build --no-cache -t shalini1772/analytics-service:$IMAGE_TAG .
           docker push shalini1772/analytics-service:$IMAGE_TAG
 
       - name: Configure AWS CLI & kubeconfig
@@ -117,7 +119,8 @@ jobs:
       - name: Build & Push order-service image
         run: |
           IMAGE_TAG=${{ github.sha }}
-          docker build -t shalini1772/order-service:$IMAGE_TAG ./order-service
+          cd order-service
+          docker build --no-cache -t shalini1772/order-service:$IMAGE_TAG .
           docker push shalini1772/order-service:$IMAGE_TAG
 
       - name: Configure AWS CLI & kubeconfig
