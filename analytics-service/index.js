@@ -31,10 +31,9 @@ app.post('/track', async (req, res) => {
     click_target = null,
     scroll_depth = null,
     page_time_seconds = null,
-    session_time = null,
+    session_duration = null,
     user_agent = null,
-    referrer = null,
-    ip_address = req.headers['x-forwarded-for'] || req.connection.remoteAddress || null,
+    timestamp
   } = req.body;
 
   try {
@@ -48,13 +47,11 @@ app.post('/track', async (req, res) => {
         click_target,
         scroll_depth,
         page_time_seconds,
-        session_time,
+        session_duration,
         user_agent,
-        referrer,
-        ip_address,
-        timestamp: new Date()
+        timestamp: new Date(timestamp)
       }],
-      format: 'JSONEachRow',
+      format: 'JSONEachRow'
     });
 
     res.status(200).json({ message: 'Event captured' });
