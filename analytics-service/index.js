@@ -4,35 +4,51 @@ import { randomUUID } from 'crypto';
 import cors from 'cors';
 
 const app = express();
+const PORT = 4000;
 
+const allowedOrigins = [
+  'http://35.170.54.198', // EC2 frontend (static website)
+];
+
+// CORS middleware (custom origin check)
 app.use(cors({
-  origin: 'http://13.51.165.23',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed for this origin'));
+    }
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
+  optionsSuccessStatus: 200,
 }));
 
 app.use(express.json());
 
-const PORT = 4000;
-
+// Preflight requests (for CORS)
 app.options('/track', cors());
 
-// ClickHouse client
+// ClickHouse client config
 const clickhouse = createClient({
   url: process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
-  username: process.env.CH_USERNAME || "default",
-  password: process.env.CH_PASSWORD || "2NJh7XE.eUV2U",
-  database: process.env.CH_DB || "lugxanalytics",
+  username: process.env.CH_USERNAME || 'default',
+  password: process.env.CH_PASSWORD || '2NJh7XE.eUV2U',
+  database: process.env.CH_DB || 'lugxanalytics',
 });
 
-// Check Analytics service health
+// Health check
 app.get('/', (req, res) => {
   res.send('Analytics Service is healthy');
 });
 
-// POST /track - Capture analytics
+// POST /track - Analytics endpoint
 app.post('/track', async (req, res) => {
   const { event_type, page_url } = req.body;
+
+  if (!event_type || !page_url) {
+    return res.status(400).json({ error: 'Missing event_type or page_url' });
+  }
 
   try {
     await clickhouse.insert({
@@ -41,9 +57,9 @@ app.post('/track', async (req, res) => {
         id: randomUUID(),
         event_type,
         page_url,
-        timestamp: new Date()
+        timestamp: new Date(),
       }],
-      format: 'JSONEachRow'
+      format: 'JSONEachRow',
     });
 
     res.status(200).json({ message: 'Event captured' });
@@ -53,6 +69,7 @@ app.post('/track', async (req, res) => {
   }
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Analytics Service running at http://localhost:${PORT}`);
 });
