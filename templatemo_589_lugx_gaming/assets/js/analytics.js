@@ -1,4 +1,3 @@
-<script>
 (function () {
   // Polyfill UUID generator for all browsers
   function generateUUID() {
@@ -62,4 +61,3 @@
     });
   });
 })();
-</script>
