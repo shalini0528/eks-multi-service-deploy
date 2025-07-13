@@ -72,6 +72,13 @@ jobs:
           envsubst < game-service/k8s/game-service-deployment-$COLOR.yaml | kubectl apply -n game -f -
           kubectl rollout status deployment/game-service-$COLOR -n game
 
+      - name: Ensure LoadBalancer service exists
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          if ! kubectl get svc game-service -n game &>/dev/null; then
+            kubectl apply -n game -f game-service/k8s/game-service-lb.yaml
+          fi
+
       - name: Patch game-service LoadBalancer selector
         env:
           COLOR: ${{ steps.color.outputs.color }}
@@ -125,16 +132,58 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
 
-      - name: Deploy analytics-service to EKS
+      - name: Detect current live color
+        id: color
+        run: |
+          if kubectl get svc analytics-service-green -n analytics &>/dev/null; then
+            echo "color=blue" >> $GITHUB_OUTPUT
+          else
+            echo "color=green" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to inactive color
         env:
           IMAGE_TAG: ${{ github.sha }}
+          COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          kubectl create namespace analytics --dry-run=client -o yaml | kubectl apply -f -
-          kubectl delete pods -l app=analytics-service -n analytics --ignore-not-found
-          envsubst < analytics-service/k8s/analytics-service-deployment.yaml | kubectl apply -n analytics -f -
-          kubectl apply -f analytics-service/k8s/analytics-ingress.yaml -n analytics
-          kubectl rollout status deployment/analytics-service -n analytics
+          envsubst < analytics-service/k8s/analytics-service-deployment-$COLOR.yaml | kubectl apply -n analytics -f -
+          kubectl rollout status deployment/analytics-service-$COLOR -n analytics
+
+      - name: Ensure LoadBalancer service exists
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          if ! kubectl get svc analytics-service -n analytics &>/dev/null; then
+            kubectl apply -n analytics -f analytics-service/k8s/analytics-service-lb.yaml
+          fi
+
+      - name: Patch analytics-service LoadBalancer selector
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl patch svc analytics-service -n analytics -p "{\"spec\": {\"selector\": {\"app\": \"analytics-service\", \"version\": \"$COLOR\"}}}"
+
+      - name: Update Ingress to point to new color
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          sed "s/{{COLOR}}/$COLOR/g" analytics-service/k8s/analytics-ingress.template.yaml > updated-ingress.yaml
+          kubectl apply -n analytics -f updated-ingress.yaml
+
+      - name: Delete old deployment (optional)
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          if [ "$COLOR" == "green" ]; then
+            OLD_COLOR="blue"
+          else
+            OLD_COLOR="green"
+          fi
+          kubectl delete deployment analytics-service-$OLD_COLOR -n analytics || true
+          kubectl delete svc analytics-service-$OLD_COLOR -n analytics || true
 
   deploy-order:
     needs: detect-changes
@@ -161,17 +210,58 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
 
-      - name: Deploy order-service to EKS
+      - name: Detect current live color
+        id: color
+        run: |
+          if kubectl get svc order-service-green -n order &>/dev/null; then
+            echo "color=blue" >> $GITHUB_OUTPUT
+          else
+            echo "color=green" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to inactive color
         env:
           IMAGE_TAG: ${{ github.sha }}
+          COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          kubectl create namespace order --dry-run=client -o yaml | kubectl apply -f -
-          kubectl delete pods -l app=order-service -n order --ignore-not-found
-          envsubst < order-service/k8s/order-service-deployment.yaml | kubectl apply -n order -f -
-          kubectl apply -f order-service/k8s/mysql-deployment.yaml -n order
-          kubectl apply -f order-service/k8s/order-ingress.yaml -n order
-          kubectl rollout status deployment/order-service -n order
+          envsubst < order-service/k8s/order-service-deployment-$COLOR.yaml | kubectl apply -n order -f -
+          kubectl rollout status deployment/order-service-$COLOR -n order
+
+      - name: Ensure LoadBalancer service exists
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          if ! kubectl get svc order-service -n order &>/dev/null; then
+            kubectl apply -n order -f order-service/k8s/order-service-lb.yaml
+          fi
+
+      - name: Patch order-service LoadBalancer selector
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl patch svc order-service -n order -p "{\"spec\": {\"selector\": {\"app\": \"order-service\", \"version\": \"$COLOR\"}}}"
+
+      - name: Update Ingress to point to new color
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          sed "s/{{COLOR}}/$COLOR/g" order-service/k8s/order-ingress.template.yaml > updated-ingress.yaml
+          kubectl apply -n order -f updated-ingress.yaml
+
+      - name: Delete old deployment (optional)
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          if [ "$COLOR" == "green" ]; then
+            OLD_COLOR="blue"
+          else
+            OLD_COLOR="green"
+          fi
+          kubectl delete deployment order-service-$OLD_COLOR -n order || true
+          kubectl delete svc order-service-$OLD_COLOR -n order || true
 
   deploy-static-site:
     needs: detect-changes
