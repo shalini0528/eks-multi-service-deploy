@@ -66,21 +66,25 @@ jobs:
       - name: Deploy to inactive color
         env:
           IMAGE_TAG: ${{ github.sha }}
+          COLOR: ${{ steps.color.outputs.color }}
         run: |
-          COLOR=${{ steps.color.outputs.color }}
           export KUBECONFIG=$PWD/kubeconfig
-          envsubst < game-service/k8s/game-service-$COLOR.yaml | kubectl apply -n game -f -
+          envsubst < game-service/k8s/game-service-deployment-$COLOR.yaml | kubectl apply -n game -f -
           kubectl rollout status deployment/game-service-$COLOR -n game
 
       - name: Update Ingress to point to new color
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
         run: |
-          COLOR=${{ steps.color.outputs.color }}
           export KUBECONFIG=$PWD/kubeconfig
-          sed "s/game-service-.*/game-service-$COLOR/" game-service/k8s/game-ingress.yaml | kubectl apply -n game -f -
+          sed "s/game-service-{{COLOR}}/game-service-$COLOR/" game-service/k8s/game-ingress.template.yaml > updated-ingress.yaml
+          kubectl apply -n game -f updated-ingress.yaml
 
       - name: Delete old deployment (optional)
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
         run: |
-          COLOR=${{ steps.color.outputs.color }}
+          export KUBECONFIG=$PWD/kubeconfig
           if [ "$COLOR" == "green" ]; then
             OLD_COLOR="blue"
           else
