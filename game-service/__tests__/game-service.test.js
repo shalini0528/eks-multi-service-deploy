@@ -1,18 +1,22 @@
 import { jest } from '@jest/globals';
 
+const mockQuery = jest.fn().mockResolvedValue([
+  [
+    { id: 1, name: 'Mock Game', category: 'Action', release_date: '2023-01-01', price: 59.99 }
+  ]
+]);
+const mockExecute = jest.fn().mockResolvedValue([{ affectedRows: 1 }]);
+
 jest.unstable_mockModule('mysql2/promise', () => ({
   createPool: () => ({
-    query: jest.fn().mockResolvedValue([
-      [
-        { id: 1, name: 'Mock Game', category: 'Action', release_date: '2023-01-01', price: 59.99 }
-      ]
-    ]),
-    execute: jest.fn().mockResolvedValue([{ affectedRows: 1 }])
+    query: mockQuery,
+    execute: mockExecute
   })
 }));
 
 import request from 'supertest';
-const { default: app } = await import('../index.js'); // ESM-compatible import
+const appModule = await import('../index.js');
+const app = appModule.default;
 
 describe('Game Service API', () => {
   it('GET / should return healthy status', async () => {
