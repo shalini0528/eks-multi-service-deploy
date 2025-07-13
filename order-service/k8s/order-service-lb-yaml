@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: order
+spec:
+  selector:
+    app: order-service
+    version: blue
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: LoadBalancer
