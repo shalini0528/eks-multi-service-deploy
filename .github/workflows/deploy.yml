@@ -314,3 +314,4 @@ jobs:
           kubectl create namespace static --dry-run=client -o yaml | kubectl apply -f -
           kubectl delete pods -l app=static-site -n static --ignore-not-found
           envsubst < templatemo_589_lugx_gaming/k8s/static-site-deployment.yaml | kubectl apply -n static -f -
+          kubectl rollout status deployment/static-site -n static
