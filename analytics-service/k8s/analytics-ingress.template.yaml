@@ -4,6 +4,8 @@ metadata:
   name: analytics-ingress
   namespace: analytics
   annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
@@ -12,17 +14,17 @@ spec:
   rules:
     - http:
         paths:
-          - path: /track
+          - path: /track(/|$)(.*)
             pathType: Prefix
             backend:
               service:
-                name: analytics-service
+                name: analytics-service-{{COLOR}}
                 port:
                   number: 80
-          - path: /
+          - path: /(/|$)(.*)
             pathType: Prefix
             backend:
               service:
-                name: analytics-service
+                name: analytics-service-{{COLOR}}
                 port:
                   number: 80
