@@ -1,5 +1,5 @@
 import express from 'express';
-import mysql from 'mysql2/promise';
+import { createPool } from 'mysql2/promise';
 
 const app = express();
 app.use(express.json());
@@ -7,7 +7,7 @@ app.use(express.json());
 const PORT = 3000;
 
 // MySQL connection pool
-const pool = mysql.createPool({
+const pool = createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || 'root',
@@ -31,7 +31,6 @@ app.get('/games', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 // Create a new game
 app.post('/games', async (req, res) => {
