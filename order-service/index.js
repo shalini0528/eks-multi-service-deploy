@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 });
 
 
-// 1. Create a new order
+// Create a new order
 app.post('/orders', async (req, res) => {
     const { customer_id, items } = req.body; // items should be an array of { game_id, game_name, quantity, price_per_item }
 
@@ -76,7 +76,7 @@ app.post('/orders', async (req, res) => {
     }
 });
 
-// 2. Get all orders (with aggregated total price for simplicity, or could fetch items separately)
+// Get all orders (with aggregated total price for simplicity, or could fetch items separately)
 app.get('/orders', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM orders ORDER BY order_date DESC');
@@ -87,7 +87,7 @@ app.get('/orders', async (req, res) => {
     }
 });
 
-// 3. Get a specific order by ID, including its items
+// Get a specific order by ID, including its items
 app.get('/orders/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -109,7 +109,7 @@ app.get('/orders/:id', async (req, res) => {
     }
 });
 
-// 4. Update Order Status
+// Update Order Status
 app.put('/orders/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
