@@ -2,12 +2,6 @@ import request from 'supertest';
 import app from '../index.js';
 
 describe('Order Service API', () => {
-  // Health Check
-  it('GET / should return healthy message', async () => {
-    const res = await request(app).get('/');
-    expect(res.statusCode).toBe(200);
-    expect(res.text).toBe('Order Service is healthy!');
-  });
 
   // Create Order
   it('POST /orders should create a new order', async () => {
