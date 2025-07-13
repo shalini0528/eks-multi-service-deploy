@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-jest.mock('mysql2/promise', () => {
+jest.unstable_mockModule('mysql2/promise', () => {
   const mockQuery = jest.fn().mockResolvedValue([[]]);
   const mockExecute = jest.fn().mockResolvedValue([{ affectedRows: 1, insertId: 1 }]);
   const mockGetConnection = jest.fn().mockResolvedValue({
@@ -20,6 +20,7 @@ jest.mock('mysql2/promise', () => {
   };
 });
 
+// ESM dynamic import AFTER mocks
 import request from 'supertest';
 const { default: app } = await import('../index.js');
 
@@ -52,17 +53,15 @@ describe('Order Service API (Mock DB)', () => {
   });
 
   it('GET /orders/:id should return an order with items', async () => {
-    const orderId = 1;
-    const res = await request(app).get(`/orders/${orderId}`);
+    const res = await request(app).get('/orders/1');
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('items');
     expect(Array.isArray(res.body.items)).toBe(true);
   });
 
   it('PUT /orders/:id/status should update status', async () => {
-    const orderId = 1;
     const res = await request(app)
-      .put(`/orders/${orderId}/status`)
+      .put(`/orders/1/status`)
       .send({ status: 'shipped' });
 
     expect(res.statusCode).toBe(200);
