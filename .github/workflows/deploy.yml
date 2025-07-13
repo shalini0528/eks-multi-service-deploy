@@ -72,12 +72,19 @@ jobs:
           envsubst < game-service/k8s/game-service-deployment-$COLOR.yaml | kubectl apply -n game -f -
           kubectl rollout status deployment/game-service-$COLOR -n game
 
+      - name: Patch game-service LoadBalancer selector
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl patch svc game-service -n game -p "{\"spec\": {\"selector\": {\"app\": \"game-service-$COLOR\"}}}"
+
       - name: Update Ingress to point to new color
         env:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          sed "s/game-service-{{COLOR}}/game-service-$COLOR/" game-service/k8s/game-ingress.template.yaml > updated-ingress.yaml
+          sed "s/{{COLOR}}/$COLOR/g" game-service/k8s/game-ingress.template.yaml > updated-ingress.yaml
           kubectl apply -n game -f updated-ingress.yaml
 
       - name: Delete old deployment (optional)
