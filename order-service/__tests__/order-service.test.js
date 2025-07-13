@@ -1,9 +1,30 @@
+import { jest } from '@jest/globals';
+
+jest.mock('mysql2/promise', () => {
+  const mockQuery = jest.fn().mockResolvedValue([[]]);
+  const mockExecute = jest.fn().mockResolvedValue([{ affectedRows: 1, insertId: 1 }]);
+  const mockGetConnection = jest.fn().mockResolvedValue({
+    beginTransaction: jest.fn(),
+    commit: jest.fn(),
+    rollback: jest.fn(),
+    execute: mockExecute,
+    release: jest.fn()
+  });
+
+  return {
+    createPool: () => ({
+      query: mockQuery,
+      execute: mockExecute,
+      getConnection: mockGetConnection
+    })
+  };
+});
+
 import request from 'supertest';
-import app from '../index.js';
+const { default: app } = await import('../index.js');
 
-describe('Order Service API', () => {
+describe('Order Service API (Mock DB)', () => {
 
-  // Create Order
   it('POST /orders should create a new order', async () => {
     const res = await request(app)
       .post('/orders')
@@ -24,55 +45,22 @@ describe('Order Service API', () => {
     expect(res.body).toHaveProperty('total_price');
   });
 
-  // Get All Orders
   it('GET /orders should return an array of orders', async () => {
     const res = await request(app).get('/orders');
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
   });
 
-  // Get Specific Order
   it('GET /orders/:id should return an order with items', async () => {
-    const newOrder = await request(app)
-      .post('/orders')
-      .send({
-        customer_id: 1,
-        items: [
-          {
-            game_id: 999,
-            game_name: 'Test Game',
-            quantity: 1,
-            price_per_item: 19.99
-          }
-        ]
-      });
-
-    const orderId = newOrder.body.orderId;
-
+    const orderId = 1;
     const res = await request(app).get(`/orders/${orderId}`);
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('items');
     expect(Array.isArray(res.body.items)).toBe(true);
   });
 
-  // Update Order Status
   it('PUT /orders/:id/status should update status', async () => {
-    const newOrder = await request(app)
-      .post('/orders')
-      .send({
-        customer_id: 2,
-        items: [
-          {
-            game_id: 202,
-            game_name: 'Another Game',
-            quantity: 1,
-            price_per_item: 39.99
-          }
-        ]
-      });
-
-    const orderId = newOrder.body.orderId;
-
+    const orderId = 1;
     const res = await request(app)
       .put(`/orders/${orderId}/status`)
       .send({ status: 'shipped' });
@@ -80,4 +68,5 @@ describe('Order Service API', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toMatch(/updated successfully/i);
   });
+
 });
