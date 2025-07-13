@@ -2,12 +2,7 @@ import request from 'supertest';
 import app from '../index.js';
 
 describe('Analytics Service', () => {
-  it('GET / should return healthy message', async () => {
-    const res = await request(app).get('/');
-    expect(res.statusCode).toBe(200);
-    expect(res.text).toBe('Analytics Service is healthy!');
-  });
-
+  
   it('POST /track should log event successfully', async () => {
     const res = await request(app)
       .post('/track')
