@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 jest.mock('mysql2/promise', () => ({
   createPool: () => ({
     query: jest.fn().mockResolvedValue([
