@@ -21,7 +21,7 @@ describe('Game Service API', () => {
   it('GET / should return healthy status', async () => {
     const response = await request(app).get('/');
     expect(response.statusCode).toBe(200);
-    expect(response.text).toBe('Game Service is healthy!');
+    expect(response.text).toBe('Game Service is healthy!!!');
   });
 
   it('GET /games should return list of games', async () => {
