@@ -77,7 +77,7 @@ jobs:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          kubectl patch svc game-service -n game -p "{\"spec\": {\"selector\": {\"app\": \"game-service-$COLOR\"}}}"
+          kubectl patch svc game-service -n game -p "{\"spec\": {\"selector\": {\"app\": \"game-service\", \"version\": \"$COLOR\"}}}"
 
       - name: Update Ingress to point to new color
         env:
