@@ -61,6 +61,11 @@ app.post('/track', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Analytics Service running at http://localhost:${PORT}`);
-});
+export default app;
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Analytics Service running at http://localhost:${PORT}`);
+  });
+}
+

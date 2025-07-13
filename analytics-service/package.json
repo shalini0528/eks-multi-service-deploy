@@ -2,19 +2,23 @@
   "name": "analytics-service",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
   "dependencies": {
     "@clickhouse/client": "^1.11.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "path-to-regexp": "^8.2.0",
     "randomuuid": "^1.0.1"
+  },
+  "devDependencies": {
+    "jest": "^30.0.4",
+    "supertest": "^7.1.3"
   }
 }
