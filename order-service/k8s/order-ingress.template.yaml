@@ -19,3 +19,10 @@ spec:
                 name: order-service-{{COLOR}}
                 port:
                   number: 80
+          - path: /(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service-{{COLOR}}
+                port:
+                  number: 80
