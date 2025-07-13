@@ -2,16 +2,20 @@
   "name": "game-service",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "type": "module",
+    "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
   "dependencies": {
     "express": "^5.1.0",
     "mysql2": "^3.14.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.3"
   }
 }

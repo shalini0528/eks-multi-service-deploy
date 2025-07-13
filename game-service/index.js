@@ -14,24 +14,38 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || 'lugxdbGame'
 });
 
+app.set('db', pool);
+
 //Check Game service health
 app.get('/', (req, res) => {
   res.send('Game Service is healthy');
 });
 
 //get all games
-app.get('/games', async (req,res)=>{
-   const [rows] = await pool.query('SELECT * FROM games');
-   res.json(rows);
+app.get('/games', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM games');
+    res.json(rows);
+  } catch (error) {
+    console.error('GET /games failed:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
 // Create a new game
 app.post('/games', async (req, res) => {
-    await pool.execute('Insert into games (name,category,release_date,price) values (?,?,?,?)', [req.body.name, req.body.category, req.body.release_date, req.body.price]);
+  try {
+    await pool.execute(
+      'INSERT INTO games (name, category, release_date, price) VALUES (?, ?, ?, ?)',
+      [req.body.name, req.body.category, req.body.release_date, req.body.price]
+    );
     res.status(200).json({ message: 'Game has been created successfully' });
+  } catch (error) {
+    console.error('POST /games failed:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
-
 
 app.put('/games/:id', async (req, res) => {
     const { id } = req.params;
@@ -45,8 +59,12 @@ app.put('/games/:id', async (req, res) => {
     res.status(200).json({ message: 'Game updated successfully' });
 });
 
+export default app;
 
 // Start server
+if(process.env.NODE_ENV !== 'test') {
 app.listen(PORT, () => {
   console.log(`Game Service running at http://localhost:${PORT}`);
 });
+}
+
