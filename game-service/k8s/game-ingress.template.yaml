@@ -19,10 +19,3 @@ spec:
                 name: game-service-{{COLOR}}
                 port:
                   number: 80
-          - path: /(/|$)(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: game-service-{{COLOR}}
-                port:
-                  number: 80
