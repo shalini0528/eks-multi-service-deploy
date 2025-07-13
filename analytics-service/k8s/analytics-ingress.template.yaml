@@ -14,14 +14,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /track(/|$)(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: analytics-service-{{COLOR}}
-                port:
-                  number: 80
-          - path: /(/|$)(.*)
+          - path: /analytics-service(/|$)(.*)
             pathType: Prefix
             backend:
               service:
