@@ -7,7 +7,7 @@ spec:
   type: LoadBalancer
   selector:
     app: analytics-service
-    version: blue  # This will be dynamically patched in CI/CD (blue or green)
+    version: blue
   ports:
     - port: 80
-      targetPort: 3000
+      targetPort: 4000
