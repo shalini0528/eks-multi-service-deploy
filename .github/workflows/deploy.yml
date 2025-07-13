@@ -81,7 +81,11 @@ jobs:
       - name: Delete old deployment (optional)
         run: |
           COLOR=${{ steps.color.outputs.color }}
-          OLD_COLOR=$(if [ "$COLOR" == "green" ]; then echo "blue"; else echo "green"; fi)
+          if [ "$COLOR" == "green" ]; then
+            OLD_COLOR="blue"
+          else
+            OLD_COLOR="green"
+          fi
           kubectl delete deployment game-service-$OLD_COLOR -n game || true
           kubectl delete svc game-service-$OLD_COLOR -n game || true
 
