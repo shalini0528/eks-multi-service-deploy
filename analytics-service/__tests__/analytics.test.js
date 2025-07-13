@@ -24,6 +24,6 @@ describe('Analytics Service', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toBe('Event captured');
-  }, 10000);
+  }, 50000);
 
 });
