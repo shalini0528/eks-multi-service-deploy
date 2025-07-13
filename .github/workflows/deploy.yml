@@ -1,4 +1,4 @@
-name: CI/CD for Microservices and Static Website
+name: CI/CD for Microservices and Static Website (Blue-Green)
 
 on:
   push:
@@ -54,17 +54,35 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
           echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
 
-      - name: Deploy game-service to EKS
+      - name: Detect current live color
+        id: color
+        run: |
+          if kubectl get svc game-service-green -n game &>/dev/null; then
+            echo "color=blue" >> $GITHUB_OUTPUT
+          else
+            echo "color=green" >> $GITHUB_OUTPUT
+
+      - name: Deploy to inactive color
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          COLOR=${{ steps.color.outputs.color }}
           export KUBECONFIG=$PWD/kubeconfig
-          kubectl create namespace game --dry-run=client -o yaml | kubectl apply -f -
-          kubectl delete pods -l app=game-service -n game --ignore-not-found
-          envsubst < game-service/k8s/game-service-deployment.yaml | kubectl apply -n game -f -
-          kubectl apply -f game-service/k8s/mysql-deployment.yaml -n game
-          kubectl apply -f game-service/k8s/game-ingress.yaml -n game
-          kubectl rollout status deployment/game-service -n game
+          envsubst < game-service/k8s/game-service-$COLOR.yaml | kubectl apply -n game -f -
+          kubectl rollout status deployment/game-service-$COLOR -n game
+
+      - name: Update Ingress to point to new color
+        run: |
+          COLOR=${{ steps.color.outputs.color }}
+          export KUBECONFIG=$PWD/kubeconfig
+          sed "s/game-service-.*/game-service-$COLOR/" game-service/k8s/game-ingress.yaml | kubectl apply -n game -f -
+
+      - name: Delete old deployment (optional)
+        run: |
+          COLOR=${{ steps.color.outputs.color }}
+          OLD_COLOR=$(if [ "$COLOR" == "green" ]; then echo "blue"; else echo "green"; fi)
+          kubectl delete deployment game-service-$OLD_COLOR -n game || true
+          kubectl delete svc game-service-$OLD_COLOR -n game || true
 
   deploy-analytics:
     needs: detect-changes
@@ -101,13 +119,6 @@ jobs:
           envsubst < analytics-service/k8s/analytics-service-deployment.yaml | kubectl apply -n analytics -f -
           kubectl apply -f analytics-service/k8s/analytics-ingress.yaml -n analytics
           kubectl rollout status deployment/analytics-service -n analytics
-
-      - name: Debug if rollout fails
-        if: failure()
-        run: |
-          echo "Rollout failed. Logs:"
-          kubectl get pods -n analytics
-          kubectl logs -l app=analytics-service -n analytics --tail=100 || true
 
   deploy-order:
     needs: detect-changes
