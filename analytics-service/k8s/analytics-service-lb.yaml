@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+  namespace: analytics
+spec:
+  type: LoadBalancer
+  selector:
+    app: analytics-service
+    version: blue  # This will be dynamically patched in CI/CD (blue or green)
+  ports:
+    - port: 80
+      targetPort: 3000
