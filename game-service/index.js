@@ -48,23 +48,23 @@ app.post('/games', async (req, res) => {
 });
 
 app.put('/games/:id', async (req, res) => {
-    const { id } = req.params;
-    const { name, category, release_date, price } = req.body;
-    const [result] = await pool.execute('UPDATE games SET name = ?, category = ?, release_date = ?, price = ? WHERE id = ?', [name, category, release_date, price, id]);
-    
-    if (result.affectedRows === 0) {
-        return res.status(404).json({ message: 'Game not found' });
-    }
-    
-    res.status(200).json({ message: 'Game updated successfully' });
+  const { id } = req.params;
+  const { name, category, release_date, price } = req.body;
+  const [result] = await pool.execute('UPDATE games SET name = ?, category = ?, release_date = ?, price = ? WHERE id = ?', [name, category, release_date, price, id]);
+
+  if (result.affectedRows === 0) {
+    return res.status(404).json({ message: 'Game not found' });
+  }
+
+  res.status(200).json({ message: 'Game updated successfully' });
 });
 
 export default app;
 
 // Start server
-if(process.env.NODE_ENV !== 'test') {
-app.listen(PORT, () => {
-  console.log(`Game Service running at http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Game Service running at http://localhost:${PORT}`);
+  });
 }
 
