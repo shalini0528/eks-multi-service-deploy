@@ -10,12 +10,12 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - http:
-      paths:
-      - path: /order-service(/|$)(.*)
-        pathType: Prefix
-        backend:
-          service:
-            name: order-service
-            port:
-              number: 80
+    - http:
+        paths:
+          - path: /order-service(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service-{{COLOR}}
+                port:
+                  number: 80
