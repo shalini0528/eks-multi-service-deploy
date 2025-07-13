@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game-service-blue
+  namespace: game
+  labels:
+    app: game-service
+    version: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: game-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: game-service
+        version: blue
+    spec:
+      containers:
+        - name: game-service
+          image: shalini1772/game-service:${IMAGE_TAG}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DB_HOST
+              value: "mysql-game-service"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              value: "root"
+            - name: DB_NAME
+              value: "lugxdbGame"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-service-blue
+  namespace: game
+spec:
+  selector:
+    app: game-service
+    version: blue
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
