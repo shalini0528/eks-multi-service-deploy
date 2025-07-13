@@ -6,7 +6,7 @@ metadata:
 spec:
   selector:
     app: game-service
-    version: blue # Default, will be patched during deployment
+    version: blue
   ports:
     - port: 80
       targetPort: 3000
