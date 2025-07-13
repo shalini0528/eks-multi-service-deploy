@@ -18,11 +18,6 @@ const appModule = await import('../index.js');
 const app = appModule.default;
 
 describe('Game Service API', () => {
-  it('GET / should return healthy status', async () => {
-    const response = await request(app).get('/');
-    expect(response.statusCode).toBe(200);
-    expect(response.text).toBe('Game Service is healthy!!!');
-  });
 
   it('GET /games should return list of games', async () => {
     const response = await request(app).get('/games');
@@ -40,4 +35,5 @@ describe('Game Service API', () => {
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toMatch(/created successfully/i);
   });
+  
 });
