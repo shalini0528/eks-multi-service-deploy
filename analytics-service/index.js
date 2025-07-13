@@ -17,7 +17,7 @@ const clickhouse = createClient({
   database: process.env.CH_DB || 'lugxanalytics',
 });
 
-// Health check
+// Check Analytics service helath
 app.get('/', (req, res) => {
   res.send('Analytics Service is healthy!');
 });
