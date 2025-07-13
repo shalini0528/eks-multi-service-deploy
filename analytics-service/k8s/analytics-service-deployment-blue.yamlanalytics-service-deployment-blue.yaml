@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service-blue
+  namespace: analytics
+  labels:
+    app: analytics-service
+    version: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: analytics-service
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: analytics-service
+        version: blue
+    spec:
+      containers:
+        - name: analytics-service
+          image: shalini1772/analytics-service:${IMAGE_TAG}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4000
+          env:
+            - name: CH_URL
+              value: "https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443"
+            - name: CH_USERNAME
+              value: "default"
+            - name: CH_PASSWORD
+              value: "2NJh7XE.eUV2U"
+            - name: CH_DB
+              value: "lugxanalytics"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4000
+            initialDelaySeconds: 5
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4000
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service-blue
+  namespace: analytics
+spec:
+  selector:
+    app: analytics-service
+    version: blue
+  ports:
+    - port: 80
+      targetPort: 4000
