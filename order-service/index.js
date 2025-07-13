@@ -16,7 +16,7 @@ const pool = mysql.createPool({
 
 //Check Order service health
 app.get('/', (req, res) => {
-  res.send('Order Service is healthy');
+  res.send('Order Service is healthy!');
 });
 
 // Test DB connection
