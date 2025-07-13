@@ -21,7 +21,6 @@ app.get('/', (req, res) => {
     res.send('Order Service is healthy!');
 });
 
-
 // Create a new order
 app.post('/orders', async (req, res) => {
     const { customer_id, items } = req.body; // items should be an array of { game_id, game_name, quantity, price_per_item }
