@@ -16,6 +16,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: game-service-${COLOR}
+            name: game-service-{{COLOR}}
             port:
               number: 80
