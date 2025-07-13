@@ -1,8 +1,36 @@
 import { jest } from '@jest/globals';
 
 jest.unstable_mockModule('mysql2/promise', () => {
-  const mockQuery = jest.fn().mockResolvedValue([[]]);
   const mockExecute = jest.fn().mockResolvedValue([{ affectedRows: 1, insertId: 1 }]);
+
+  const mockQuery = jest.fn((sql, params) => {
+    if (sql.includes('FROM orders') && params?.length === 1) {
+      // Mock for GET /orders/:id
+      return Promise.resolve([[
+        {
+          id: params[0],
+          customer_id: 1,
+          order_date: '2025-07-13',
+          status: 'pending',
+          total_price: 59.98
+        }
+      ]]);
+    } else if (sql.includes('FROM order_items') && params?.length === 1) {
+      // Mock for order items of a specific order
+      return Promise.resolve([[
+        {
+          game_id: 101,
+          game_name: 'Sample Game',
+          quantity: 2,
+          price_per_item: 29.99
+        }
+      ]]);
+    } else {
+      // Default mock for GET /orders
+      return Promise.resolve([[]]);
+    }
+  });
+
   const mockGetConnection = jest.fn().mockResolvedValue({
     beginTransaction: jest.fn(),
     commit: jest.fn(),
@@ -20,7 +48,6 @@ jest.unstable_mockModule('mysql2/promise', () => {
   };
 });
 
-// ESM dynamic import AFTER mocks
 import request from 'supertest';
 const { default: app } = await import('../index.js');
 
