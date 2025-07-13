@@ -21,17 +21,6 @@ app.get('/', (req, res) => {
     res.send('Order Service is healthy!');
 });
 
-// Test DB connection
-pool.getConnection()
-    .then(connection => {
-        console.log('Successfully connected to MySQL database!');
-        connection.release();
-    })
-    .catch(err => {
-        console.error('Failed to connect to MySQL database:', err.message);
-        process.exit(1); // Exit process if DB connection fails
-    });
-
 
 // 1. Create a new order
 app.post('/orders', async (req, res) => {
