@@ -8,15 +8,17 @@ const PORT = 5000;
 
 // MySQL connection pool
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'root',
-  database: process.env.DB_NAME || 'lugxdbOrder'
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'root',
+    database: process.env.DB_NAME || 'lugxdbOrder'
 });
+
+app.set('db', pool);
 
 //Check Order service health
 app.get('/', (req, res) => {
-  res.send('Order Service is healthy!');
+    res.send('Order Service is healthy!');
 });
 
 // Test DB connection
@@ -108,7 +110,7 @@ app.get('/orders/:id', async (req, res) => {
 
         const order = orders[0];
         const [items] = await pool.query('SELECT * FROM cart_items WHERE order_id = ?', [id]);
-        
+
         order.items = items; // Attach items to the order object
 
         res.json(order);
@@ -126,7 +128,7 @@ app.put('/orders/:id/status', async (req, res) => {
     if (!status) {
         return res.status(400).json({ message: 'Status is required for update.' });
     }
-    
+
     const allowedStatuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled', 'refunded']; // Define your valid statuses
     if (!allowedStatuses.includes(status.toLowerCase())) {
         return res.status(400).json({ message: `Invalid status. Allowed values are: ${allowedStatuses.join(', ')}` });
@@ -150,8 +152,11 @@ app.put('/orders/:id/status', async (req, res) => {
 });
 
 
+export default app;
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Order Service running at http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Order Service running at http://localhost:${PORT}`);
+    });
+}
