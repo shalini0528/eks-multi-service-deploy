@@ -1,4 +1,16 @@
+jest.mock('mysql2/promise', () => ({
+  createPool: () => ({
+    query: jest.fn().mockResolvedValue([
+      [
+        { id: 1, name: 'Mock Game', category: 'Action', release_date: '2023-01-01', price: 59.99 }
+      ]
+    ]),
+    execute: jest.fn().mockResolvedValue([{ affectedRows: 1 }])
+  })
+}));
+
 import request from 'supertest';
+import express from 'express';
 import app from '../index.js';
 
 describe('Game Service API', () => {
