@@ -280,3 +280,39 @@ jobs:
           fi
           kubectl delete deployment order-service-$OLD_COLOR -n order || true
           kubectl delete svc order-service-$OLD_COLOR -n order || true
+
+  deploy-static-site:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.static == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker Login
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build & Push static site image
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          cd templatemo_589_lugx_gaming
+          docker build --no-cache -t shalini1772/static-site:$IMAGE_TAG .
+          docker push shalini1772/static-site:$IMAGE_TAG
+
+      - name: Configure AWS CLI & kubeconfig
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          aws configure set region "${{ secrets.AWS_REGION }}"
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig
+          echo "KUBECONFIG=$PWD/kubeconfig" >> $GITHUB_ENV
+
+      - name: Deploy static site to EKS
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl create namespace static --dry-run=client -o yaml | kubectl apply -f -
+          kubectl delete pods -l app=static-site -n static --ignore-not-found
+          envsubst < templatemo_589_lugx_gaming/k8s/static-site-deployment.yaml | kubectl apply -n static -f -
+          kubectl apply -f templatemo_589_lugx_gaming/k8s/static-ingress.yaml -n static
+          kubectl rollout status deployment/static-site -n static
