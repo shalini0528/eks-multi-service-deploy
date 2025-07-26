@@ -1,18 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: analytics-service-blue-monitor
-  namespace: monitoring
+  name: analytics-service-blue
   labels:
-    release: prometheus-stack
+    release: prometheus
 spec:
   selector:
     matchLabels:
       app: analytics-service
       version: blue
-  namespaceSelector:
-    matchNames:
-      - analytics
   endpoints:
     - port: http
       path: /metrics
       interval: 15s
+  namespaceSelector:
+    matchNames:
+      - analytics
