@@ -75,7 +75,7 @@ jobs:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          envsubst < game-service/k8s/game-service-deployment-$COLOR.yaml | kubectl apply -n game -f -
+          envsubst < game-service/k8s/game-service-$COLOR-deployment.yaml | kubectl apply -n game -f -
           kubectl rollout status deployment/game-service-$COLOR -n game
 
       - name: Ensure LoadBalancer service exists
@@ -159,7 +159,7 @@ jobs:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          envsubst < analytics-service/k8s/analytics-service-deployment-$COLOR.yaml | kubectl apply -n analytics -f -
+          envsubst < analytics-service/k8s/analytics-service-$COLOR-deployment.yaml | kubectl apply -n analytics -f -
           kubectl rollout status deployment/analytics-service-$COLOR -n analytics
 
       - name: Ensure LoadBalancer service exists
@@ -243,7 +243,7 @@ jobs:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          envsubst < order-service/k8s/order-service-deployment-$COLOR.yaml | kubectl apply -n order -f -
+          envsubst < order-service/k8s/order-service-$COLOR-deployment.yaml | kubectl apply -n order -f -
           kubectl rollout status deployment/order-service-$COLOR -n order
 
       - name: Ensure LoadBalancer service exists
