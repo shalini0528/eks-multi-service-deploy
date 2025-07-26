@@ -19,7 +19,7 @@ const clickhouse = createClient({
 
 // Check Analytics service helath
 app.get('/', (req, res) => {
-  res.send('Analytics Service is healthy!');
+  res.send('Analytics Service is healthy!!');
 });
 
 // Track endpoint
