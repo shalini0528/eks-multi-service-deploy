@@ -1,1 +1,18 @@
-
+kind: ServiceMonitor
+metadata:
+  name: analytics-service-blue-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: analytics-service
+      version: blue
+  namespaceSelector:
+    matchNames:
+      - analytics
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
