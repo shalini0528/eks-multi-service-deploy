@@ -1,1 +1,18 @@
-
+kind: ServiceMonitor
+metadata:
+  name: order-service-green-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: order-service
+      version: green
+  namespaceSelector:
+    matchNames:
+      - order
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
