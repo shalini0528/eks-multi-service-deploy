@@ -83,7 +83,7 @@ jobs:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          kubectl apply -n game -f game-service/k8s/monitor-game-$COLOR.yaml
+          kubectl apply -n game -f game-service/k8s/game-service-$COLOR-monitor.yaml
 
       - name: Ensure LoadBalancer service exists
         run: |
@@ -175,7 +175,7 @@ jobs:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          kubectl apply -n analytics -f analytics-service/k8s/monitor-analytics-$COLOR.yaml
+          kubectl apply -n analytics -f analytics-service/k8s/analytics-service-$COLOR-monitor.yaml
 
       - name: Ensure LoadBalancer service exists
         run: |
@@ -267,7 +267,7 @@ jobs:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
           export KUBECONFIG=$PWD/kubeconfig
-          kubectl apply -n order -f order-service/k8s/monitor-order-$COLOR.yaml
+          kubectl apply -n order -f order-service/k8s/order-service-$COLOR-monitor.yaml
 
       - name: Ensure LoadBalancer service exists
         run: |
