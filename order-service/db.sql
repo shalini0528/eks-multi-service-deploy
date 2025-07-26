@@ -31,7 +31,6 @@ CREATE TABLE IF NOT EXISTS cart_items (
 );
 
 
-
 INSERT INTO customers (name, email) VALUES 
 ('Alice Smith', 'alice@example.com'),
 ('Bob Johnson', 'bob@example.com'),
