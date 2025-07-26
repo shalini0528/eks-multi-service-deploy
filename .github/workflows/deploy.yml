@@ -2,7 +2,7 @@ name: CI/CD for Microservices and Static Website (Blue-Green)
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   detect-changes:
@@ -78,6 +78,13 @@ jobs:
           envsubst < game-service/k8s/game-service-$COLOR-deployment.yaml | kubectl apply -n game -f -
           kubectl rollout status deployment/game-service-$COLOR -n game
 
+      - name: Apply ServiceMonitor for Prometheus
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl apply -n game -f game-service/k8s/monitor-game-$COLOR.yaml
+
       - name: Ensure LoadBalancer service exists
         run: |
           export KUBECONFIG=$PWD/kubeconfig
@@ -100,7 +107,7 @@ jobs:
           sed "s/{{COLOR}}/$COLOR/g" game-service/k8s/game-ingress.template.yaml > updated-ingress.yaml
           kubectl apply -n game -f updated-ingress.yaml
 
-      - name: Delete old deployment (optional)
+      - name: Delete old deployment and ServiceMonitor (optional)
         env:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
@@ -112,6 +119,7 @@ jobs:
           fi
           kubectl delete deployment game-service-$OLD_COLOR -n game || true
           kubectl delete svc game-service-$OLD_COLOR -n game || true
+          kubectl delete servicemonitor game-service-$OLD_COLOR -n game || true
 
   deploy-analytics:
     needs: detect-changes
@@ -162,6 +170,13 @@ jobs:
           envsubst < analytics-service/k8s/analytics-service-$COLOR-deployment.yaml | kubectl apply -n analytics -f -
           kubectl rollout status deployment/analytics-service-$COLOR -n analytics
 
+      - name: Apply ServiceMonitor for Prometheus
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl apply -n analytics -f analytics-service/k8s/monitor-analytics-$COLOR.yaml
+
       - name: Ensure LoadBalancer service exists
         run: |
           export KUBECONFIG=$PWD/kubeconfig
@@ -184,7 +199,7 @@ jobs:
           sed "s/{{COLOR}}/$COLOR/g" analytics-service/k8s/analytics-ingress.template.yaml > updated-ingress.yaml
           kubectl apply -n analytics -f updated-ingress.yaml
 
-      - name: Delete old deployment (optional)
+      - name: Delete old deployment and ServiceMonitor (optional)
         env:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
@@ -196,6 +211,7 @@ jobs:
           fi
           kubectl delete deployment analytics-service-$OLD_COLOR -n analytics || true
           kubectl delete svc analytics-service-$OLD_COLOR -n analytics || true
+          kubectl delete servicemonitor analytics-service-$OLD_COLOR -n analytics || true
 
   deploy-order:
     needs: detect-changes
@@ -246,6 +262,13 @@ jobs:
           envsubst < order-service/k8s/order-service-$COLOR-deployment.yaml | kubectl apply -n order -f -
           kubectl rollout status deployment/order-service-$COLOR -n order
 
+      - name: Apply ServiceMonitor for Prometheus
+        env:
+          COLOR: ${{ steps.color.outputs.color }}
+        run: |
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl apply -n order -f order-service/k8s/monitor-order-$COLOR.yaml
+
       - name: Ensure LoadBalancer service exists
         run: |
           export KUBECONFIG=$PWD/kubeconfig
@@ -268,7 +291,7 @@ jobs:
           sed "s/{{COLOR}}/$COLOR/g" order-service/k8s/order-ingress.template.yaml > updated-ingress.yaml
           kubectl apply -n order -f updated-ingress.yaml
 
-      - name: Delete old deployment (optional)
+      - name: Delete old deployment and ServiceMonitor (optional)
         env:
           COLOR: ${{ steps.color.outputs.color }}
         run: |
@@ -280,6 +303,7 @@ jobs:
           fi
           kubectl delete deployment order-service-$OLD_COLOR -n order || true
           kubectl delete svc order-service-$OLD_COLOR -n order || true
+          kubectl delete servicemonitor order-service-$OLD_COLOR -n order || true
 
   deploy-static-site:
     needs: detect-changes
