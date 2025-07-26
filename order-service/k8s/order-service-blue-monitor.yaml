@@ -1,0 +1,18 @@
+kind: ServiceMonitor
+metadata:
+  name: order-service-blue-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: order-service
+      version: blue
+  namespaceSelector:
+    matchNames:
+      - order
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
