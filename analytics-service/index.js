@@ -27,6 +27,7 @@ app.get('/metrics', async (req, res) => {
 });
 
 
+
 // Check Analytics service helath
 app.get('/', (req, res) => {
   res.send('Analytics Service is healthy!!');
