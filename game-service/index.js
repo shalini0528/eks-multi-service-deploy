@@ -25,7 +25,6 @@ app.get('/metrics', async (req, res) => {
   res.end(await register.metrics());
 });
 
-
 //Check Game service health
 app.get('/', (req, res) => {
   res.send('Game Service is healthy!');
