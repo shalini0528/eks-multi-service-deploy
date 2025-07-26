@@ -1,5 +1,6 @@
 import express from 'express';
 import {createPool} from 'mysql2/promise';
+import client from 'prom-client'; 
 
 const app = express();
 app.use(express.json());
@@ -15,6 +16,15 @@ const pool = createPool({
 });
 
 app.set('db', pool);
+
+const register = new client.Registry();
+client.collectDefaultMetrics({ register });
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
+
 
 //Check Order service health
 app.get('/', (req, res) => {
