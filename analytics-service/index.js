@@ -2,6 +2,7 @@ import express from 'express';
 import { createClient } from '@clickhouse/client';
 import { randomUUID } from 'crypto';
 import cors from 'cors';
+import client from 'prom-client'; 
 
 const app = express();
 app.use(cors());
@@ -16,6 +17,15 @@ const clickhouse = createClient({
   password: process.env.CH_PASSWORD || '2NJh7XE.eUV2U',
   database: process.env.CH_DB || 'lugxanalytics',
 });
+
+const register = new client.Registry();
+client.collectDefaultMetrics({ register });
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
+
 
 // Check Analytics service helath
 app.get('/', (req, res) => {
@@ -68,4 +78,3 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`Analytics Service running at http://localhost:${PORT}`);
   });
 }
-
