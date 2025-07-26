@@ -1,5 +1,6 @@
 import express from 'express';
 import { createPool } from 'mysql2/promise';
+import client from 'prom-client'; 
 
 const app = express();
 app.use(express.json());
@@ -16,9 +17,17 @@ const pool = createPool({
 
 app.set('db', pool);
 
+const register = new client.Registry();
+client.collectDefaultMetrics({ register });
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
+
 //Check Game service health
 app.get('/', (req, res) => {
-  res.send('Game Service is healthy!!');
+  res.send('Game Service is healthy!');
 });
 
 //get all games
@@ -66,4 +75,3 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`Game Service running at http://localhost:${PORT}`);
   });
 }
-
