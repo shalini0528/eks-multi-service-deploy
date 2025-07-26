@@ -1,18 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: analytics-service-green-monitor
-  namespace: monitoring
+  name: analytics-service-green
   labels:
-    release: prometheus-stack
+    release: prometheus
 spec:
   selector:
     matchLabels:
       app: analytics-service
       version: green
-  namespaceSelector:
-    matchNames:
-      - analytics
   endpoints:
     - port: http
       path: /metrics
       interval: 15s
+  namespaceSelector:
+    matchNames:
+      - analytics
