@@ -1,4 +1,4 @@
-CREATE DATABASE lugxanalytics;
+CREATE DATABASE IF NOT EXISTS lugxanalytics;
 
 USE lugxanalytics;
 
