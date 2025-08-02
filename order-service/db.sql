@@ -36,12 +36,10 @@ INSERT INTO customers (name, email) VALUES
 ('Bob Johnson', 'bob@example.com'),
 ('Charlie Davis', 'charlie@example.com');
 
-
 INSERT INTO orders (customer_id, total_price, status) VALUES 
 (1, 59.98, 'completed'),
 (2, 39.99, 'processing'),
 (3, 99.99, 'pending');
-
 
 INSERT INTO cart_items (order_id, game_id, game_name, quantity, price_per_item, subtotal) VALUES 
 (1, 101, 'The Witcher 3', 1, 39.99, 39.99),
