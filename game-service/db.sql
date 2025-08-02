@@ -10,8 +10,6 @@ CREATE TABLE IF NOT EXISTS games (
     price DECIMAL(10, 2)
 );
 
-
--- Insert sample games
 INSERT INTO games (name, category, release_date, price) VALUES
 ('Elder Scrolls V: Skyrim', 'RPG', '2011-11-11', 39.99),
 ('Counter-Strike: Global Offensive', 'Shooter', '2012-08-21', 0.00),
