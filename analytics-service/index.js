@@ -12,9 +12,9 @@ const PORT = 4000;
 
 // ClickHouse client setup
 const clickhouse = createClient({
-  url: process.env.CH_URL || 'https://gofyug2nof.us-west-2.aws.clickhouse.cloud:8443',
+  url: process.env.CH_URL || 'https://zo9pss9xqb.us-west-2.aws.clickhouse.cloud:8443',
   username: process.env.CH_USERNAME || 'default',
-  password: process.env.CH_PASSWORD || '2NJh7XE.eUV2U',
+  password: process.env.CH_PASSWORD || '9.klykVF496EZ',
   database: process.env.CH_DB || 'lugxanalytics',
 });
 
