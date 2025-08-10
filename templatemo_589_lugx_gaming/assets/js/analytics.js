@@ -30,7 +30,7 @@
       ...data
     };
 
-    fetch('http://a8a8e4ce5155c465bba7929302d5ab42-004ecb42a89ce13e.elb.eu-north-1.amazonaws.com/analytics-service/track', {
+    fetch('http://a65feeee33f914984a722138637a245d-86baaa14fc246862.elb.eu-north-1.amazonaws.com/analytics-service/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
