@@ -27,7 +27,7 @@ app.get('/metrics', async (req, res) => {
 
 //Check Order service health
 app.get('/', (req, res) => {
-    res.send('Order Service is healthy!');
+    res.send('Order Service is healthy!!!');
 });
 
 // Create a new order
