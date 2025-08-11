@@ -20,6 +20,7 @@ app.set('db', pool);
 const register = new client.Registry();
 client.collectDefaultMetrics({ register });
 
+// metrics endpount for grafana
 app.get('/metrics', async (req, res) => {
   res.set('Content-Type', register.contentType);
   res.end(await register.metrics());
@@ -55,6 +56,7 @@ app.post('/games', async (req, res) => {
   }
 });
 
+// Get a game by ID
 app.put('/games/:id', async (req, res) => {
   const { id } = req.params;
   const { name, category, release_date, price } = req.body;
