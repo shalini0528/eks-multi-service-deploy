@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: analytics-service
-          image: shalini1772/analytics-service:${IMAGE_TAG}
+          image: <DOCKER_USERNAME>/analytics-service:${IMAGE_TAG}
           imagePullPolicy: Always
           ports:
             - containerPort: 4000
