@@ -2,7 +2,7 @@ name: CI/CD for Microservices and Static Website (Blue-Green)
 
 on:
   push:
-    branches: [main]
+    branches: [public]
 
 jobs:
   detect-changes:
@@ -49,8 +49,8 @@ jobs:
         run: |
           IMAGE_TAG=${{ github.sha }}
           cd game-service
-          docker build --no-cache -t shalini1772/game-service:$IMAGE_TAG .
-          docker push shalini1772/game-service:$IMAGE_TAG
+          docker build --no-cache -t "${{ secrets.DOCKER_USERNAME }}"/game-service:$IMAGE_TAG .
+          docker push "${{ secrets.DOCKER_USERNAME }}"/game-service:$IMAGE_TAG
 
       - name: Configure AWS CLI & kubeconfig
         run: |
@@ -141,8 +141,8 @@ jobs:
         run: |
           IMAGE_TAG=${{ github.sha }}
           cd analytics-service
-          docker build --no-cache -t shalini1772/analytics-service:$IMAGE_TAG .
-          docker push shalini1772/analytics-service:$IMAGE_TAG
+          docker build --no-cache -t "${{ secrets.DOCKER_USERNAME }}"/analytics-service:$IMAGE_TAG .
+          docker push "${{ secrets.DOCKER_USERNAME }}"/analytics-service:$IMAGE_TAG
 
       - name: Configure AWS CLI & kubeconfig
         run: |
@@ -233,8 +233,8 @@ jobs:
         run: |
           IMAGE_TAG=${{ github.sha }}
           cd order-service
-          docker build --no-cache -t shalini1772/order-service:$IMAGE_TAG .
-          docker push shalini1772/order-service:$IMAGE_TAG
+          docker build --no-cache -t "${{ secrets.DOCKER_USERNAME }}"/order-service:$IMAGE_TAG .
+          docker push "${{ secrets.DOCKER_USERNAME }}"/order-service:$IMAGE_TAG
 
       - name: Configure AWS CLI & kubeconfig
         run: |
@@ -319,8 +319,8 @@ jobs:
         run: |
           IMAGE_TAG=${{ github.sha }}
           cd templatemo_589_lugx_gaming
-          docker build --no-cache -t shalini1772/static-site:$IMAGE_TAG .
-          docker push shalini1772/static-site:$IMAGE_TAG
+          docker build --no-cache -t "${{ secrets.DOCKER_USERNAME }}"/static-site:$IMAGE_TAG .
+          docker push "${{ secrets.DOCKER_USERNAME }}"/static-site:$IMAGE_TAG
 
       - name: Configure AWS CLI & kubeconfig
         run: |
