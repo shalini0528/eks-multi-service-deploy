@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "keywords": [],
-  "author": "",
+  "author": "S M Kularathne",
   "license": "ISC",
   "type": "module",
-  
-    "scripts": {
+  "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "description": "",
