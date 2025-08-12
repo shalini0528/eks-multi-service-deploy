@@ -26,13 +26,13 @@ spec:
             - containerPort: 4000
           env:
             - name: CH_URL
-              value: "https://zo9pss9xqb.us-west-2.aws.clickhouse.cloud:8443"
+              value: <CH_URL>
             - name: CH_USERNAME
-              value: "default"
+              value: <CH_USERNAME>
             - name: CH_PASSWORD
-              value: "9.klykVF496EZ"
+              value: <CH_PASSWORD>
             - name: CH_DB
-              value: "lugxanalytics"
+              value: <CH_DB>
           readinessProbe:
             httpGet:
               path: /
