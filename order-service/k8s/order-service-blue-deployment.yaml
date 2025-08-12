@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: shalini1772/order-service:${IMAGE_TAG}
+          image: <DOCKER_USERNAME>/order-service:${IMAGE_TAG}
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
