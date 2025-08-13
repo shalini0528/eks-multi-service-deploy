@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: game-service
-          image: shalini1772/game-service:${IMAGE_TAG}
+          image: <DOCKER_USERNAME>/game-service:${IMAGE_TAG}
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
