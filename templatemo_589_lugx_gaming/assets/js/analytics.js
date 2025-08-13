@@ -30,7 +30,7 @@
       ...data
     };
 
-    fetch('http://adde17a20065e4b1088647b30374896d-07908bf8e8eb14f6.elb.eu-north-1.amazonaws.com/analytics-service/track', {
+    fetch('<ANALYTICS_SERVICE_GETWAY_ENDPOINT>/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
