@@ -142,10 +142,15 @@ Run for each service directory:
 
 # Build
 ```
+cd game-service
 docker build -t game-service .
+cd ../order-service
 docker build -t order-service .
+cd ../analytics-service
 docker build -t analytics-service .
+cd ../templatemo_589_lugx_gaming
 docker build -t static-site .
+cd ..
 ```
 
 # Tag
@@ -168,6 +173,8 @@ docker push `<DOCKER_USERNAME>`/static-site:0.1
 
 ## 8) Deploy to EKS
 
+> **Note**: Before deploying, you may need to replace `${IMAGE_TAG}` placeholders in the deployment YAML files with your actual image tag (e.g., `0.1`), or use `envsubst`/`sed` to substitute the value during deployment.
+
 ### Create namespaces
 ```
 kubectl create namespace game
@@ -178,6 +185,7 @@ kubectl create namespace static
 
 ### Game service
 ```
+cd game-service/k8s
 kubectl apply -f game-service-blue-deployment.yaml -n game
 kubectl apply -f game-service-lb.yaml -n game
 kubectl apply -f mysql-deployment.yaml -n game
@@ -185,10 +193,12 @@ kubectl apply -f mysql-deployment.yaml -n game
 COLOR=blue
 sed "s/{{COLOR}}/$COLOR/g" game-ingress.template.yaml > game-ingress.yaml
 kubectl apply -f game-ingress.yaml -n game
+cd ../..
 ```
 
 ### Order service
 ```
+cd order-service/k8s
 kubectl apply -f order-service-blue-deployment.yaml -n order
 kubectl apply -f order-service-lb.yaml -n order
 kubectl apply -f mysql-deployment.yaml -n order
@@ -196,21 +206,26 @@ kubectl apply -f mysql-deployment.yaml -n order
 COLOR=blue
 sed "s/{{COLOR}}/$COLOR/g" order-ingress.template.yaml > order-ingress.yaml
 kubectl apply -f order-ingress.yaml -n order
+cd ../..
 ```
 
 ### Analytics service
-
 ```
+cd analytics-service/k8s
 COLOR=blue
 sed "s/{{COLOR}}/$COLOR/g" analytics-ingress.template.yaml > analytics-ingress.yaml
 kubectl apply -f analytics-service-blue-deployment.yaml -n analytics
+kubectl apply -f analytics-service-lb.yaml -n analytics
 kubectl apply -f analytics-ingress.yaml -n analytics
+cd ../..
 ```
 
 ### Static site
 ```
-  kubectl apply -f static-site-deployment.yaml -n static
-  kubectl apply -f static-ingress.yaml -n static
+cd templatemo_589_lugx_gaming/k8s
+kubectl apply -f static-site-deployment.yaml -n static
+kubectl apply -f static-ingress.yaml -n static
+cd ../..
 ```
 
 ---
@@ -242,6 +257,7 @@ kubectl apply -f analytics-ingress.yaml -n analytics
 
 # Analytics service
 - kubectl get pods -n analytics
+- Note: Analytics service uses ClickHouse (cloud-hosted). Connection details are configured via environment variables in the deployment manifest.
 
 
 ---
@@ -280,6 +296,9 @@ Password: prom-operator
 - Docker permission denied → Run \`newgrp docker\` or re-login to EC2.
 - Ingress stuck on pending → Check \`kubectl get svc -n ingress-nginx\` and ensure public subnets.
 - Images not pulling → Verify image names/tags and registry credentials.
+- Analytics service failing → Check that `CH_PASSWORD` environment variable is set in the deployment. Verify ClickHouse connection details.
+- MySQL connection errors → Ensure MySQL pods are running and database names match (`lugxdbGame` for game service, `lugxdbOrder` for order service).
+- Build errors → Ensure you're in the correct directory when running `docker build` commands. Each service has its own Dockerfile.
 
 ---
 
@@ -306,6 +325,16 @@ eksctl delete cluster --name multi-service-cluster --region eu-north-1
 - Use Kubernetes secrets for DB passwords instead of hardcoding.
 - Keep \`kubectl\`, \`eksctl\`, and EKS version aligned.
 - For blue/green deploys, swap ingress color in templates.
+- **Analytics Service**: Ensure `CH_PASSWORD` environment variable is set in the deployment manifest or via Kubernetes Secrets. The service requires ClickHouse credentials to function properly.
+- **Dockerfiles**: All services use `npm ci` for reproducible builds. Ensure `package-lock.json` files are committed.
+- **MySQL**: Both game and order services use MySQL 8.0 with native password authentication for compatibility with `mysql2` Node.js driver.
+
+### Recent Improvements
+- ✅ Removed hardcoded credentials from application code (analytics service)
+- ✅ Standardized Dockerfile naming and build commands across all services
+- ✅ Removed unnecessary dependencies (using built-in Node.js crypto module)
+- ✅ Standardized MySQL deployments with consistent version and authentication
+- ✅ Fixed typos and improved code documentation
 
 ---
 

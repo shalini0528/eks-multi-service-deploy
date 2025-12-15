@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: static-site
-          image: shalini1772/static-site:${IMAGE_TAG}
+          image: <DOCKER_USERNAME>/static-site:${IMAGE_TAG}
           ports:
             - containerPort: 80
           resources:

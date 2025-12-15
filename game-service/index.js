@@ -20,7 +20,7 @@ app.set('db', pool);
 const register = new client.Registry();
 client.collectDefaultMetrics({ register });
 
-// metrics endpount for grafana
+// metrics endpoint for grafana
 app.get('/metrics', async (req, res) => {
   res.set('Content-Type', register.contentType);
   res.end(await register.metrics());

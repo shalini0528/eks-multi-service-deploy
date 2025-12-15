@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://lugxgaming.com/sitemap.xml
+
+# Disallow admin and private areas (if any)
+Disallow: /admin/
+Disallow: /private/
+Disallow: /*.json$
+Disallow: /vendor/
+
+# Allow important resources
+Allow: /assets/
+Allow: /index.html
+Allow: /shop.html
+Allow: /product-details.html
+Allow: /contact.html
+
