@@ -96,12 +96,14 @@ While this repo provides examples, production deployments should consider:
 
 - **IAM & IRSA**: Use fine‑grained IAM roles for service accounts (IRSA). Avoid attaching broad policies to nodes.
 - **Secrets**: Store secrets in **Kubernetes Secrets** backed by a KMS provider (e.g., AWS KMS via Secrets Store CSI), not in plaintext manifests. Rotate regularly.
+  - **Current Status**: Analytics service code no longer has hardcoded passwords as fallbacks. However, deployment manifests still contain credentials in environment variables—these should be migrated to Kubernetes Secrets in production.
 - **Images**: Use pinned, minimal base images and scan with tools like `trivy`/`grype`. Enable signature verification (e.g., Cosign) if possible.
 - **Network**: Add NetworkPolicies to restrict pod‑to‑pod traffic. Limit Service exposure to public internet.
 - **Runtime**: Set restrictive `securityContext` (`runAsNonRoot`, `readOnlyRootFilesystem`, drop capabilities). Avoid `hostNetwork`, `hostPID`, or privileged containers.
 - **Ingress/TLS**: Terminate TLS with AWS Load Balancer Controller or NGINX Ingress; use HTTPS-only listeners.
 - **Monitoring**: Use Prometheus alerts and log aggregation for anomaly detection.
 - **Upgrades**: Keep cluster, ingress controller, and Helm charts updated. Apply security patches promptly.
+- **Dependencies**: Regularly audit and update npm packages. The project uses `npm ci` for reproducible builds with locked dependency versions.
 
 ---
 

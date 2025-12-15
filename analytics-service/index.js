@@ -11,10 +11,11 @@ app.use(express.json());
 const PORT = 4000;
 
 // ClickHouse client setup
+// Note: In production, ensure CH_PASSWORD is always set via environment variables or secrets
 const clickhouse = createClient({
   url: process.env.CH_URL || 'https://zo9pss9xqb.us-west-2.aws.clickhouse.cloud:8443',
   username: process.env.CH_USERNAME || 'default',
-  password: process.env.CH_PASSWORD || '9.klykVF496EZ',
+  password: process.env.CH_PASSWORD || '',
   database: process.env.CH_DB || 'lugxanalytics',
 });
 
@@ -26,7 +27,7 @@ app.get('/metrics', async (req, res) => {
   res.end(await register.metrics());
 });
 
-// Check Analytics service helath
+// Check Analytics service health
 app.get('/', (req, res) => {
   res.send('Analytics Service is healthy!');
 });
